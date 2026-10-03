@@ -1,6 +1,6 @@
 # M1 Label Spec: Incident Triage
 
-**Status:** v0.4, adds `AV_OPERATOR` party and Operator Training team (2026-10-03)
+**Status:** v1.0, locked with golden set `data/golden/golden_v1.jsonl` (PM review complete 2026-10-03)
 **Data:** NHTSA SGO 2021-01 ADS incident reports, 1,429 usable reports after removing redacted narratives and duplicate versions
 
 ## What the triage model does
