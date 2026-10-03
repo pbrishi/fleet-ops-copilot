@@ -1,6 +1,6 @@
 # M1 Label Spec: Incident Triage
 
-**Status:** DRAFT v0.1, awaiting PM review
+**Status:** v0.3, labeling rules added from first labeling pass (2026-10-03)
 **Data:** NHTSA SGO 2021-01 ADS incident reports, 1,429 usable reports after removing redacted narratives and duplicate versions
 
 ## What the triage model does
@@ -68,15 +68,28 @@ Whose action most directly led to contact, **according to the narrative**.
 
 ## 4. Routing (rules applied to fields 1-3)
 
-Each incident gets one owning team. Rules run top to bottom; first match wins.
+Each incident gets **one owning team** plus **zero or more secondary teams**. The owner is accountable for closing the incident; secondaries are looped in for their part.
+
+**Owner:** rules run top to bottom; first match wins.
 
 | # | Rule | Owner |
 |---|---|---|
-| 1 | Severity is S1 or S2, **or** scenario is `VULNERABLE_ROAD_USER` | **Safety Incident Response** (page within 1 hour) |
+| 1 | Severity is S1 or S2, **or** scenario is `VULNERABLE_ROAD_USER` (any severity) | **Safety Incident Response** (page within 1 hour) |
 | 2 | Contributing party is `AV` | **Autonomy Behavior Review** (driving behavior triage) |
 | 3 | Contributing party is `ENVIRONMENT` | **Field Ops & Mapping** (check map, report hazard) |
 | 4 | Severity S3 | **Safety Incident Response** (next business day) |
 | 5 | Everything else (S4, other party, unclear) | **Claims & Recovery** (insurance, repair) |
+
+**Secondary teams:** add each team below whose condition is true, unless it's already the owner.
+
+| Condition | Secondary team | Why |
+|---|---|---|
+| Contributing party is `AV` | Autonomy Behavior Review | Every AV-caused contact gets a behavior review, even when Safety owns it |
+| Contributing party is `ENVIRONMENT`, or scenario is `OBJECT_OR_INFRA` | Field Ops & Mapping | Hazards and infrastructure need a field check |
+| Contributing party is `OTHER_PARTY` | Claims & Recovery | Recover repair costs from the other party |
+| Severity is S3 | Safety Incident Response | Any injury gets a Safety look |
+
+**Eval:** owner is scored as exact match; secondaries are scored as set precision/recall. Because routing is computed from fields 1-3, routing errors trace back to a specific upstream field error.
 
 ## 5. Summary
 
@@ -86,6 +99,30 @@ One sentence, max 30 words, for an ops lead skimming a queue. Must state: what h
 
 ---
 
+## Labeling rules (added after labeling 120 reports)
+
+Edge cases that came up while drafting the golden set, and how they were resolved.
+
+**Scenario**
+- **Rear vs. sideswipe:** a vehicle squarely following the AV that hits its rear is `REAR_STRUCK`. A vehicle that was swerving, passing or changing lanes when it hit the AV's rear corner is `SIDESWIPE_MERGE`.
+- **Chain reactions:** label by how the AV itself was contacted. A car pushed into the AV's rear is `REAR_STRUCK`.
+- **Head-on / wrong-way:** `OTHER`. Only 4 of 120, so no new category yet.
+- **Motorcycles count as vulnerable road users,** as do riders' passengers and people standing outside the AV (e.g., a rider at an open door).
+- **Non-contact events** (the AV's maneuver led to a crash between other vehicles): label the maneuver; usually `SIDESWIPE_MERGE`.
+
+**Contributing party**
+- **Objects:** if the AV hit a normal, designed feature (curb, speed bump, gate track, pole, vegetation, raised pavement), the party is `AV`. If it hit a defect or unexpected hazard (pothole, debris, downed line, rolling ball), the party is `ENVIRONMENT`.
+- **AV changing lanes into an occupied space, with no blame stated:** `UNCLEAR`.
+- **The AV's own human operator** (test driver in manual mode, remote operator, safety driver who was drowsy or intervened) caused the contact: currently `AV`. **Open question, see below.**
+- **The AV's own passenger** (e.g., opening a door while moving): `OTHER_PARTY`.
+
+**Severity**
+- Severity comes from NHTSA's field and isn't relabeled, even when the narrative doesn't mention the injury (1 case in the golden set). These are kept as known label noise.
+
+## Open questions from labeling
+
+5. **Operator-caused incidents.** 7 of the 15 `AV` labels were caused by the company's own human operators, not the driving software. Routing them to Autonomy Behavior Review sends them to the wrong team. Options: (a) add an `AV_OPERATOR` party that routes to a new **Operator Training & Standards** team, (b) keep `AV` and accept the misroute, (c) keep `AV` and add Operator Training as a secondary.
+
 ## Golden set plan
 
 - **Size:** 120 reports, stratified so rare classes are represented
@@ -94,9 +131,11 @@ One sentence, max 30 words, for an ops lead skimming a queue. Must state: what h
 - **Labeling:** Claude drafts scenario + contributing party; PM reviews every label (est. 2 hours). The model under test is Gemini, so a different model drafts the labels to avoid grading a model against its own opinions.
 - **Holdout:** the remaining ~1,300 reports stay unlabeled for spot-checks and a later larger run.
 
-## Decisions for the PM
+## Decision log
 
-1. Are 4 severity levels right, or should S2 and S3 merge?
-2. Is `VULNERABLE_ROAD_USER` → always Safety Incident Response right, even with no injury?
-3. Are 8 scenario codes the right granularity? Too many makes labeling slow; too few makes routing coarse.
-4. Should routing allow a secondary team (e.g., Safety + Autonomy Behavior Review)? v0.1 says one owner only, to keep the eval simple.
+| # | Question | Decision (2026-10-03) |
+|---|---|---|
+| 1 | 4 severity levels, or merge S2 and S3? | Keep 4 levels |
+| 2 | Pedestrian/cyclist incidents always to Safety, even with no injury? | Yes |
+| 3 | 8 scenario codes the right granularity? | Yes |
+| 4 | Allow secondary teams? | Yes: one owner plus optional secondaries |
