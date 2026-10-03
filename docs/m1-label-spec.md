@@ -111,7 +111,7 @@ Edge cases that came up while drafting the golden set, and how they were resolve
 - **Non-contact events** (the AV's maneuver led to a crash between other vehicles): label the maneuver; usually `SIDESWIPE_MERGE`.
 
 **Contributing party**
-- **Objects:** if the AV hit a normal, designed feature (curb, speed bump, gate track, pole, vegetation, raised pavement), the party is `AV`. If it hit a defect or unexpected hazard (pothole, debris, downed line, rolling ball), the party is `ENVIRONMENT`.
+- **Objects: could a careful driver have avoided it?** If the object or hazard was already in place and the AV drove into it, the party is `AV`. That covers designed features (curb, speed bump, gate track, pole) and static hazards (a downed line across the road, a pothole the AV steered into). If it appeared suddenly or moved into the AV's path (debris revealed at the last moment, a rolling ball), or isn't something a careful driver would steer around (minor uneven pavement), the party is `ENVIRONMENT`. _Revised during PM review: v0.3 split on object type, which mislabeled a downed line the AV drove into._
 - **AV changing lanes into an occupied space, with no blame stated:** `UNCLEAR`.
 - **The AV's own human operator** (test driver in manual mode, remote operator, safety driver who was drowsy or intervened) caused the contact: currently `AV`. **Open question, see below.**
 - **The AV's own passenger** (e.g., opening a door while moving): `OTHER_PARTY`.
