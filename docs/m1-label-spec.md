@@ -1,6 +1,6 @@
 # M1 Label Spec: Incident Triage
 
-**Status:** v0.3, labeling rules added from first labeling pass (2026-10-03)
+**Status:** v0.4, adds `AV_OPERATOR` party and Operator Training team (2026-10-03)
 **Data:** NHTSA SGO 2021-01 ADS incident reports, 1,429 usable reports after removing redacted narratives and duplicate versions
 
 ## What the triage model does
@@ -59,7 +59,8 @@ Whose action most directly led to contact, **according to the narrative**.
 
 | Code | Definition |
 |---|---|
-| `AV` | The AV's own motion or decision led to contact (e.g., AV proceeds and contacts a pole, AV turns into a car's path) |
+| `AV` | The automated driving system's own motion or decision led to contact (e.g., AV proceeds and contacts a pole, AV turns into a car's path) |
+| `AV_OPERATOR` | The AV company's own human operator led to contact: a test driver or safety driver in manual mode, a remote operator driving, or an operator whose inattention or intervention caused it (e.g., fell asleep, pressed the accelerator) |
 | `OTHER_PARTY` | Another road user's action led to contact (e.g., rear-ended while stopped) |
 | `ENVIRONMENT` | Road conditions, debris, infrastructure, or animals |
 | `UNCLEAR` | The narrative doesn't give enough to decide |
@@ -76,15 +77,17 @@ Each incident gets **one owning team** plus **zero or more secondary teams**. Th
 |---|---|---|
 | 1 | Severity is S1 or S2, **or** scenario is `VULNERABLE_ROAD_USER` (any severity) | **Safety Incident Response** (page within 1 hour) |
 | 2 | Contributing party is `AV` | **Autonomy Behavior Review** (driving behavior triage) |
-| 3 | Contributing party is `ENVIRONMENT` | **Field Ops & Mapping** (check map, report hazard) |
-| 4 | Severity S3 | **Safety Incident Response** (next business day) |
-| 5 | Everything else (S4, other party, unclear) | **Claims & Recovery** (insurance, repair) |
+| 3 | Contributing party is `AV_OPERATOR` | **Operator Training & Standards** (operator coaching, fitness-for-duty, takeover procedures) |
+| 4 | Contributing party is `ENVIRONMENT` | **Field Ops & Mapping** (check map, report hazard) |
+| 5 | Severity S3 | **Safety Incident Response** (next business day) |
+| 6 | Everything else (S4, other party, unclear) | **Claims & Recovery** (insurance, repair) |
 
 **Secondary teams:** add each team below whose condition is true, unless it's already the owner.
 
 | Condition | Secondary team | Why |
 |---|---|---|
 | Contributing party is `AV` | Autonomy Behavior Review | Every AV-caused contact gets a behavior review, even when Safety owns it |
+| Contributing party is `AV_OPERATOR` | Operator Training & Standards | Every operator-caused contact gets an operator review, even when Safety owns it |
 | Contributing party is `ENVIRONMENT`, or scenario is `OBJECT_OR_INFRA` | Field Ops & Mapping | Hazards and infrastructure need a field check |
 | Contributing party is `OTHER_PARTY` | Claims & Recovery | Recover repair costs from the other party |
 | Severity is S3 | Safety Incident Response | Any injury gets a Safety look |
@@ -113,15 +116,11 @@ Edge cases that came up while drafting the golden set, and how they were resolve
 **Contributing party**
 - **Objects: could a careful driver have avoided it?** If the object or hazard was already in place and the AV drove into it, the party is `AV`. That covers designed features (curb, speed bump, gate track, pole) and static hazards (a downed line across the road, a pothole the AV steered into). If it appeared suddenly or moved into the AV's path (debris revealed at the last moment, a rolling ball), or isn't something a careful driver would steer around (minor uneven pavement), the party is `ENVIRONMENT`. _Revised during PM review: v0.3 split on object type, which mislabeled a downed line the AV drove into._
 - **AV changing lanes into an occupied space, with no blame stated:** `UNCLEAR`.
-- **The AV's own human operator** (test driver in manual mode, remote operator, safety driver who was drowsy or intervened) caused the contact: currently `AV`. **Open question, see below.**
+- **The AV's own human operator** (test driver in manual mode, remote operator, safety driver who was drowsy or intervened) caused the contact: `AV_OPERATOR`. If the operator took over but another road user caused the contact, it's still `OTHER_PARTY`.
 - **The AV's own passenger** (e.g., opening a door while moving): `OTHER_PARTY`.
 
 **Severity**
 - Severity comes from NHTSA's field and isn't relabeled, even when the narrative doesn't mention the injury (1 case in the golden set). These are kept as known label noise.
-
-## Open questions from labeling
-
-5. **Operator-caused incidents.** 7 of the 15 `AV` labels were caused by the company's own human operators, not the driving software. Routing them to Autonomy Behavior Review sends them to the wrong team. Options: (a) add an `AV_OPERATOR` party that routes to a new **Operator Training & Standards** team, (b) keep `AV` and accept the misroute, (c) keep `AV` and add Operator Training as a secondary.
 
 ## Golden set plan
 
@@ -139,3 +138,5 @@ Edge cases that came up while drafting the golden set, and how they were resolve
 | 2 | Pedestrian/cyclist incidents always to Safety, even with no injury? | Yes |
 | 3 | 8 scenario codes the right granularity? | Yes |
 | 4 | Allow secondary teams? | Yes: one owner plus optional secondaries |
+| 5 | Operator-caused incidents (7 of 18 AV-caused in the golden set) were routing to the software team | Add `AV_OPERATOR` party, routed to a new Operator Training & Standards team |
+| 6 | Static hazards the AV drove into (e.g., a downed line already across the road): environment or AV? | AV. The test is whether a careful driver could have avoided it |

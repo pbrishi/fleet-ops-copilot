@@ -6,6 +6,7 @@ SAFETY = "Safety Incident Response"
 AUTONOMY = "Autonomy Behavior Review"
 FIELD_OPS = "Field Ops & Mapping"
 CLAIMS = "Claims & Recovery"
+OPERATOR = "Operator Training & Standards"
 
 
 def route(severity: str, scenario: str, party: str) -> tuple[str, list[str]]:
@@ -14,6 +15,8 @@ def route(severity: str, scenario: str, party: str) -> tuple[str, list[str]]:
         owner = SAFETY
     elif party == "AV":
         owner = AUTONOMY
+    elif party == "AV_OPERATOR":
+        owner = OPERATOR
     elif party == "ENVIRONMENT":
         owner = FIELD_OPS
     elif severity == "S3":
@@ -24,6 +27,8 @@ def route(severity: str, scenario: str, party: str) -> tuple[str, list[str]]:
     secondary = []
     if party == "AV":
         secondary.append(AUTONOMY)
+    if party == "AV_OPERATOR":
+        secondary.append(OPERATOR)
     if party == "ENVIRONMENT" or scenario == "OBJECT_OR_INFRA":
         secondary.append(FIELD_OPS)
     if party == "OTHER_PARTY":

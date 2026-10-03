@@ -11,7 +11,7 @@ R, SM, IT, BK, PD, VRU, OBJ, OTH = (
     "REAR_STRUCK", "SIDESWIPE_MERGE", "INTERSECTION_TURN", "BACKING",
     "PARKED_OR_DOOR", "VULNERABLE_ROAD_USER", "OBJECT_OR_INFRA", "OTHER",
 )
-AV, OP, ENV, UNC = "AV", "OTHER_PARTY", "ENVIRONMENT", "UNCLEAR"
+AV, AVO, OP, ENV, UNC = "AV", "AV_OPERATOR", "OTHER_PARTY", "ENVIRONMENT", "UNCLEAR"
 
 # idx: (scenario, contributing_party, note)
 LABELS = {
@@ -33,19 +33,19 @@ LABELS = {
     41: (IT, OP, "turning SUV crossed double yellow"), 42: (IT, OP, "hit-and-run"), 43: (VRU, OP, "motorcycle rear-ended AV"),
     44: (SM, OP, "truck passing"), 45: (IT, OP, ""), 46: (SM, OP, "SUV swerved right from behind; then hit pole"),
     47: (IT, OP, ""), 48: (SM, UNC, "non-contact: AV lane change, two other vehicles collided"),
-    49: (VRU, OP, "scooter against signal"), 50: (SM, OP, ""), 51: (SM, AV, "test driver in manual mode"),
+    49: (VRU, OP, "scooter against signal"), 50: (SM, OP, ""), 51: (SM, AVO, "test driver in manual mode"),
     52: (R, OP, ""), 53: (BK, OP, "reversing to parallel park"), 54: (IT, OP, ""), 55: (BK, OP, ""),
-    56: (IT, OP, "ran stop sign; hit-and-run"), 57: (OBJ, AV, "teleoperator drove onto curb into fence"),
-    58: (OBJ, AV, "operator took manual control into curb"),
+    56: (IT, OP, "ran stop sign; hit-and-run"), 57: (OBJ, AVO, "teleoperator drove onto curb into fence"),
+    58: (OBJ, AVO, "operator took manual control into curb"),
     60: (OBJ, ENV, "debris revealed suddenly; AV chose least-bad option"), 61: (OTH, OP, "wrong-way head-on into parked AV"),
-    62: (IT, AV, "test driver in manual mode; ADS not engaged"), 63: (R, OP, "chain; AV parked"),
-    64: (OBJ, AV, "gate track"), 65: (R, OP, ""), 66: (R, OP, ""), 67: (SM, AV, "operator manual lane change"),
+    62: (IT, AVO, "test driver in manual mode; ADS not engaged"), 63: (R, OP, "chain; AV parked"),
+    64: (OBJ, AV, "gate track"), 65: (R, OP, ""), 66: (R, OP, ""), 67: (SM, AVO, "operator manual lane change"),
     68: (VRU, OP, "car hit pedestrian then AV"), 69: (IT, OP, "SUV squeezed past turning AV; low confidence on scenario"),
     70: (SM, OP, "low confidence on scenario"), 71: (OBJ, AV, "raised pavement"),
-    72: (OBJ, AV, "operator fell asleep, hand blocked steering"), 73: (IT, OP, "hit-and-run"),
+    72: (OBJ, AVO, "operator fell asleep, hand blocked steering"), 73: (IT, OP, "hit-and-run"),
     74: (OBJ, ENV, "basketball rolled into lane"), 75: (OBJ, AV, "AV steered around tree into pothole"), 76: (R, OP, "S3 but narrative never mentions injury"),
     77: (SM, OP, ""), 78: (SM, OP, ""), 79: (R, OP, ""), 80: (IT, OP, ""), 81: (R, OP, ""), 82: (R, OP, ""),
-    83: (OBJ, AV, "drowsy operator disengaged"), 84: (IT, OP, ""), 85: (R, OP, "chain"), 86: (R, OP, ""),
+    83: (OBJ, AVO, "drowsy operator disengaged"), 84: (IT, OP, ""), 85: (R, OP, "chain"), 86: (R, OP, ""),
     87: (SM, OP, ""), 88: (BK, OP, ""), 89: (R, OP, "chain"),
     90: (SM, UNC, "AV (safety driver) hit tow truck that cut in and braked"), 91: (R, OP, "vehicle fire"),
     92: (R, OP, ""), 93: (R, OP, ""), 94: (IT, OP, ""), 95: (R, OP, "chain"), 96: (R, OP, "hit-and-run"),
