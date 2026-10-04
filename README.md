@@ -1,5 +1,7 @@
 # Fleet Ops Copilot
 
+**Live demo: [fleet-ops-copilot.vercel.app](https://fleet-ops-copilot.vercel.app)**
+
 An AI copilot for autonomous vehicle fleet operations, built in public as an AI product management portfolio project. Every capability ships with an eval, so quality is measured, not assumed.
 
 ## Portal
