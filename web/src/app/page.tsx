@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useFleet } from "@/components/FleetProvider";
 import FleetMap from "@/components/MapPanel";
-import { Badge, Card, PageHeader, Stat } from "@/components/ui";
+import { Badge, Card, PageHeader, Reveal, Stat } from "@/components/dashboard";
 import { needsAttention, type Status } from "@/lib/fleet";
 import { ago, STATUS_META } from "@/lib/labels";
 
@@ -25,24 +25,24 @@ export default function Overview() {
 
   return (
     <>
-      <PageHeader title="Fleet overview" subtitle="San Francisco service area · 60 vehicles · simulated data" />
+      <PageHeader eyebrow="San Francisco · 60 vehicles · simulated live" title="Fleet overview" subtitle="Where every vehicle is, what it is doing, and which ones need a human right now." />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-        <Stat label="In service" value={`${active.length}/${vehicles.length}`} sub={`${count("maintenance")} maintenance · ${count("offline")} offline`} />
-        <Stat label="Utilization" value={`${Math.round(utilization * 100)}%`} sub="in trip or heading to pickup" />
-        <Stat label="Riders onboard" value={vehicles.filter((v) => v.riderOnboard).length} sub={`${count("idle")} vehicles available`} />
-        <Stat label="Avg battery" value={`${Math.round(avgBattery)}%`} sub={`${count("charging")} charging`} />
-        <Stat label="Needs attention" value={attention.length} tone={attention.length ? "text-amber-300" : "text-slate-50"} sub={`${count("remote_assist")} waiting for remote assist`} />
-      </div>
+      <Reveal className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <Stat label="In service" value={active.length} suffix={`/${vehicles.length}`} sub={`${count("maintenance")} maintenance · ${count("offline")} offline`} accent="from-emerald-400/70 to-transparent" />
+        <Stat label="Utilization" value={Math.round(utilization * 100)} suffix="%" sub="in trip or heading to pickup" />
+        <Stat label="Riders onboard" value={vehicles.filter((v) => v.riderOnboard).length} sub={`${count("idle")} vehicles available`} accent="from-sky-400/70 to-transparent" />
+        <Stat label="Avg battery" value={Math.round(avgBattery)} suffix="%" sub={`${count("charging")} charging`} accent="from-violet-400/70 to-transparent" />
+        <Stat label="Needs attention" value={attention.length} tone={attention.length ? "text-amber-300" : "text-slate-50"} sub={`${count("remote_assist")} waiting for remote assist`} accent="from-amber-400/80 to-transparent" />
+      </Reveal>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-3">
+      <Reveal delay={0.1} className="mt-4 grid gap-4 xl:grid-cols-3">
         <Card title="Live map" className="xl:col-span-2" action={<Legend />}>
           <div className="h-[420px]">
             <FleetMap vehicles={vehicles} />
           </div>
         </Card>
 
-        <Card title="Needs attention" action={<span className="text-xs text-slate-500">{attention.length} vehicles</span>}>
+        <Card title="Needs attention" beam={{ from: "#fbbf24", to: "#f43f5e" }} action={<span className="text-xs text-slate-500">{attention.length} vehicles</span>}>
           <ul className="-my-2 divide-y divide-slate-800">
             {attention.map((v) => (
               <li key={v.id}>
@@ -63,9 +63,9 @@ export default function Overview() {
             ))}
           </ul>
         </Card>
-      </div>
+      </Reveal>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+      <Reveal delay={0.2} className="mt-4 grid gap-4 lg:grid-cols-3">
         <Card title="Fleet status">
           <div className="flex h-3 overflow-hidden rounded-full">
             {STATUS_ORDER.map((s) => (
@@ -98,7 +98,7 @@ export default function Overview() {
             ))}
           </ul>
         </Card>
-      </div>
+      </Reveal>
 
       <Card title="Software rollout" className="mt-4">
         <div className="flex flex-wrap items-center gap-4 text-sm">

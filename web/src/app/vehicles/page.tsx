@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useFleet } from "@/components/FleetProvider";
-import { BatteryBar, Card, PageHeader } from "@/components/ui";
+import { BatteryBar, Card, PageHeader } from "@/components/dashboard";
 import { SUBSYSTEMS, type Status } from "@/lib/fleet";
 import { batteryColor, healthScoreColor, STATUS_META } from "@/lib/labels";
 
@@ -37,7 +37,7 @@ export default function VehiclesPage() {
 
   return (
     <>
-      <PageHeader title="Vehicles" subtitle="Health and status for every vehicle. Sorted by health score so problems float to the top." />
+      <PageHeader eyebrow="Health · faults · software" title="Vehicles" subtitle="Health and status for every vehicle. Sorted by health score so problems float to the top." />
 
       <Card>
         <div className="mb-4 flex flex-wrap items-center gap-2">

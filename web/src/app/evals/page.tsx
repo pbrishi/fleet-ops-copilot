@@ -1,4 +1,4 @@
-import { Card, PageHeader } from "@/components/ui";
+import { Card, PageHeader } from "@/components/dashboard";
 import evals from "@/data/evals.json";
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
@@ -25,6 +25,7 @@ export default function EvalsPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Measured, not assumed"
         title="Evals & method"
         subtitle={`How triage quality is measured. ${evals.dataset}, model ${evals.model}.`}
       />

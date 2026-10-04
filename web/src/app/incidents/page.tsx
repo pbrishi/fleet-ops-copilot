@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Badge, Card, PageHeader, Stat } from "@/components/ui";
+import { Badge, Card, PageHeader, Reveal, Stat } from "@/components/dashboard";
 import incidentsData from "@/data/incidents.json";
 import { PARTY_LABEL, SCENARIO_LABEL, SEVERITY_META } from "@/lib/labels";
 
@@ -36,16 +36,17 @@ export default function IncidentsPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Real NHTSA crash reports · triaged by Gemini"
         title="Incident triage"
         subtitle="120 real autonomous-vehicle crash reports from NHTSA's public Standing General Order data. Gemini reads each narrative and extracts severity, scenario and contributing party; deterministic rules route it to an owning team."
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <Reveal className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Reports in queue" value={incidents.length} sub="PM-reviewed golden set" />
-        <Stat label="Flagged serious (S1/S2)" value={serious} tone="text-orange-300" sub="paged to Safety" />
-        <Stat label="Owner team matches reviewer" value={`${Math.round((incidents.filter((i) => i.triage.owner === i.gold.owner).length / incidents.length) * 100)}%`} sub="prompt v2 · gemini-flash" />
+        <Stat label="Flagged serious (S1/S2)" value={serious} tone="text-orange-300" accent="from-orange-400/80 to-transparent" sub="paged to Safety" />
+        <Stat label="Owner team matches reviewer" value={Math.round((incidents.filter((i) => i.triage.owner === i.gold.owner).length / incidents.length) * 100)} suffix="%" accent="from-emerald-400/70 to-transparent" sub="prompt v2 · gemini-flash" />
         <Stat label="Routed to Operator Training" value={incidents.filter((i) => i.triage.owner === "Operator Training & Standards").length} sub="human-operator caused" />
-      </div>
+      </Reveal>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-5">
         <Card className="xl:col-span-3">

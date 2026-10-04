@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Badge, Card, PageHeader } from "@/components/ui";
+import { Badge, Card, PageHeader } from "@/components/dashboard";
+import { BlurFade } from "@/components/ui/blur-fade";
+import { ShimmerButton } from "@/components/ui/shimmer-button";
 import kbData from "@/rider/kb.json";
 import scenarios from "@/rider/scenarios.json";
 
@@ -54,15 +56,16 @@ export default function RiderPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Gemini · grounded in a 78-article knowledge base"
         title="Rider support copilot"
         subtitle="A chat assistant for riders of a fictional robotaxi service, Copilot Rides. It answers only from a 78-article knowledge base plus the rider's live trip, and hands off to a human or flags an emergency when it should."
       >
-        <div className="flex rounded-lg border border-slate-700 p-0.5 text-sm">
+        <div className="flex rounded-xl border border-white/10 bg-white/[0.03] p-1 text-sm">
           {(["chat", "kb"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`rounded-md px-3 py-1.5 ${tab === t ? "bg-slate-800 text-slate-50" : "text-slate-400 hover:text-slate-200"}`}
+              className={`rounded-lg px-3.5 py-1.5 transition ${tab === t ? "bg-sky-500/15 text-sky-100 ring-1 ring-sky-400/30" : "text-slate-400 hover:text-slate-200"}`}
             >
               {t === "chat" ? "Chat" : "Knowledge base"}
             </button>
@@ -125,13 +128,13 @@ function Chat({ onOpenArticle }: { onOpenArticle: (id: string) => void }) {
 
   return (
     <div className="grid gap-4 xl:grid-cols-3">
-      <Card title="Rider chat" className="xl:col-span-2" action={<span className="text-xs text-slate-500">Gemini · grounded in the knowledge base</span>}>
+      <Card title="Rider chat" className="xl:col-span-2" beam={{ from: "#38bdf8", to: "#818cf8" }} action={<span className="text-xs text-slate-500">Gemini · grounded in the knowledge base</span>}>
         <div className="mb-3 flex flex-wrap gap-2">
           {(Object.keys(scenarios) as ScenarioKey[]).map((s) => (
             <button
               key={s}
               onClick={() => switchScenario(s)}
-              className={`rounded-full border px-3 py-1 text-xs ${scenario === s ? "border-sky-500/60 bg-sky-500/10 text-sky-200" : "border-slate-700 text-slate-400 hover:text-slate-200"}`}
+              className={`rounded-full border px-3 py-1 text-xs transition ${scenario === s ? "border-sky-400/50 bg-sky-500/15 text-sky-100" : "border-white/10 text-slate-400 hover:text-slate-200"}`}
             >
               {scenarios[s].label}
             </button>
@@ -146,13 +149,13 @@ function Chat({ onOpenArticle }: { onOpenArticle: (id: string) => void }) {
           </div>
         )}
 
-        <div className="h-[420px] space-y-3 overflow-y-auto rounded-lg border border-slate-800 bg-slate-950/60 p-3" aria-live="polite">
+        <div className="h-[440px] space-y-3 overflow-y-auto rounded-xl border border-white/5 bg-slate-950/70 p-4" aria-live="polite">
           {messages.length === 0 && (
             <p className="py-10 text-center text-sm text-slate-500">Ask anything a rider might ask, or tap a suggestion below.</p>
           )}
           {messages.map((m, i) => (
-            <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${m.role === "user" ? "bg-sky-600 text-white" : m.error ? "bg-slate-800 text-amber-200" : "bg-slate-800 text-slate-100"}`}>
+            <BlurFade key={i} duration={0.3} inView={false} direction={m.role === "user" ? "left" : "right"} offset={8} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm ${m.role === "user" ? "rounded-br-md bg-gradient-to-br from-sky-500 to-indigo-500 text-white" : m.error ? "rounded-bl-md bg-slate-800/80 text-amber-200 ring-1 ring-amber-500/20" : "rounded-bl-md bg-slate-800/80 text-slate-100 ring-1 ring-white/5"}`}>
                 <p className="whitespace-pre-wrap">{m.text}</p>
                 {m.role === "assistant" && !m.error && (
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
@@ -165,15 +168,21 @@ function Chat({ onOpenArticle }: { onOpenArticle: (id: string) => void }) {
                   </div>
                 )}
               </div>
-            </div>
+            </BlurFade>
           ))}
-          {sending && <div className="text-xs text-slate-500">Support is typing…</div>}
+          {sending && (
+            <div className="flex items-center gap-1.5 px-1 text-xs text-slate-500" aria-label="Support is typing">
+              {[0, 150, 300].map((d) => (
+                <span key={d} className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-500" style={{ animationDelay: `${d}ms` }} />
+              ))}
+            </div>
+          )}
           <div ref={endRef} />
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
           {SUGGESTIONS[scenario].map((s) => (
-            <button key={s} onClick={() => send(s)} disabled={sending} className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300 hover:border-slate-500 disabled:opacity-50">
+            <button key={s} onClick={() => send(s)} disabled={sending} className="rounded-full border border-white/10 bg-white/[0.02] px-3 py-1 text-xs text-slate-300 transition hover:border-sky-400/40 hover:text-sky-100 disabled:opacity-50">
               {s}
             </button>
           ))}
@@ -192,11 +201,11 @@ function Chat({ onOpenArticle }: { onOpenArticle: (id: string) => void }) {
             maxLength={500}
             placeholder="Type a message"
             aria-label="Message"
-            className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-slate-500 focus:outline-none"
+            className="min-w-0 flex-1 rounded-xl border border-white/10 bg-slate-950/80 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 transition focus:border-sky-400/50 focus:outline-none focus:ring-2 focus:ring-sky-400/20"
           />
-          <button type="submit" disabled={sending || !input.trim()} className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50">
+          <ShimmerButton type="submit" disabled={sending || !input.trim()} background="linear-gradient(135deg,#0ea5e9,#6366f1)" shimmerColor="#e0f2fe" borderRadius="12px" className="px-5 py-2.5 text-sm font-medium disabled:opacity-50">
             Send
-          </button>
+          </ShimmerButton>
         </form>
       </Card>
 

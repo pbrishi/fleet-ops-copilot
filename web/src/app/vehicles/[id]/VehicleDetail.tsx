@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useFleet } from "@/components/FleetProvider";
 import FleetMap from "@/components/MapPanel";
-import { Badge, Card, Stat } from "@/components/ui";
+import { Badge, Card, Stat } from "@/components/dashboard";
 import { SUBSYSTEMS } from "@/lib/fleet";
 import { ago, HEALTH_META, healthScoreColor, STATUS_META } from "@/lib/labels";
 
@@ -38,9 +38,9 @@ export default function VehicleDetail({ id }: { id: string }) {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Stat label="Health score" value={v.healthScore} tone={healthScoreColor(v.healthScore)} sub={`${v.faults.length} active fault${v.faults.length === 1 ? "" : "s"}`} />
-        <Stat label="Battery" value={`${Math.round(v.battery)}%`} sub={`~${Math.round(v.battery * 2.4)} mi range`} />
-        <Stat label="Speed" value={`${Math.round(v.speedMph)} mph`} sub={v.speedMph ? "moving" : "stationary"} />
-        <Stat label="Today" value={`${v.tripsToday} trips`} sub={`${v.milesToday} mi`} />
+        <Stat label="Battery" value={Math.round(v.battery)} suffix="%" sub={`~${Math.round(v.battery * 2.4)} mi range`} />
+        <Stat label="Speed" value={Math.round(v.speedMph)} suffix=" mph" sub={v.speedMph ? "moving" : "stationary"} />
+        <Stat label="Today" value={v.tripsToday} suffix=" trips" sub={`${v.milesToday} mi`} />
         <Stat label="Odometer" value={`${(v.odometerMi / 1000).toFixed(1)}k mi`} sub={`serviced ${v.lastServiceDays}d ago`} />
       </div>
 
