@@ -15,7 +15,8 @@ A chat assistant for riders of **Copilot Rides**, a fictional robotaxi service (
 - **Knowledge base:** [`web/src/rider/kb.json`](web/src/rider/kb.json), built by [`scripts/build_rider_kb.py`](scripts/build_rider_kb.py). Question topics were researched from public robotaxi help centers, rider reviews and news coverage; every answer and policy is original and fictional.
 - **Design:** the whole knowledge base (~6k tokens) goes in the prompt. At this size that's simpler and more reliable than retrieval. The prompt bundle is shared by the web route and the eval, so the site runs exactly what was evaluated.
 - **Eval:** 52 test conversations across knowledge-base questions, trip-context use, emergencies, out-of-scope and adversarial inputs (prompt injection, card numbers, promised credits). Deterministic checks plus a stronger model as judge for faithfulness. Results in [`evals/results/`](evals/results/).
-- **Next:** voice input and spoken replies.
+- **Voice:** tap the mic and speak. The recording (16 kHz WAV) goes straight to Gemini, which transcribes and answers in one call; replies are spoken with Gemini TTS (default voice Charon, a professional male voice), requested sentence by sentence so audio starts sooner.
+- **Voice eval finding:** on silent or noisy recordings the model invented plausible transcripts from the trip context ("Why are we just sitting here? I have a flight to catch.") in **12 of 20** clips. A stricter prompt cut that to 4/20; adding a silence check in the browser and on the server brought the full pipeline to **1/20** (a synthetic pure tone). Real speech: 4/4 correct. Next step: proper voice-activity detection. Script: [`scripts/run_rider_voice_eval.py`](scripts/run_rider_voice_eval.py).
 
 ## Results so far (M1, development set)
 
