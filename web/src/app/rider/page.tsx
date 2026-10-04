@@ -82,7 +82,9 @@ function Chat({ onOpenArticle }: { onOpenArticle: (id: string) => void }) {
   const endRef = useRef<HTMLDivElement>(null);
   const context = scenarios[scenario].context;
 
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), [messages, sending]);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [messages, sending]);
 
   const switchScenario = (s: ScenarioKey) => {
     setScenario(s);
