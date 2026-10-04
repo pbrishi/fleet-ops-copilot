@@ -1,0 +1,1002 @@
+{
+ "policy": {
+  "service_name": "Copilot Rides",
+  "service_area": "San Francisco",
+  "hours": "24 hours a day, 7 days a week",
+  "pickup_wait_minutes": 5,
+  "free_cancel_minutes": 2,
+  "cancel_fee": "$5",
+  "cleaning_fee_minor": "$50",
+  "cleaning_fee_major": "$150",
+  "lost_item_hold_days": 30,
+  "max_riders": 4,
+  "min_age": 18
+ },
+ "articles": [
+  {
+   "id": "book-01",
+   "category": "Booking",
+   "question": "How do I request a ride?",
+   "alt_phrasings": [
+    "How do I book a car?",
+    "How does this work?"
+   ],
+   "answer": "Open the Copilot Rides app, set your pickup and destination, and tap Request. You'll see the fare and pickup time before you confirm, and the app shows the car's location as it approaches.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "book-02",
+   "category": "Booking",
+   "question": "Where and when does the service operate?",
+   "alt_phrasings": [
+    "What are your hours?",
+    "Do you go to Oakland?"
+   ],
+   "answer": "Copilot Rides operates within San Francisco, 24 hours a day, 7 days a week. The map in the app shows the exact service area; destinations outside it can't be booked yet.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "book-03",
+   "category": "Booking",
+   "question": "Why can't I get a ride right now?",
+   "alt_phrasings": [
+    "Service unavailable",
+    "No cars available"
+   ],
+   "answer": "Rides can be briefly unavailable when demand is high, or paused during heavy rain, fog or a city emergency. Try again in a few minutes; the app will show an estimated time when service resumes.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "book-04",
+   "category": "Booking",
+   "question": "Can I schedule a ride in advance?",
+   "alt_phrasings": [
+    "Can I book for tomorrow morning?"
+   ],
+   "answer": "Not yet. Rides are requested on demand. For an important trip, like an airport run, request about 15 minutes before you need to leave.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Rider reviews and trip reports (topic)"
+  },
+  {
+   "id": "book-05",
+   "category": "Booking",
+   "question": "Can I book a ride for someone else?",
+   "alt_phrasings": [
+    "Can I send a car for my mom?"
+   ],
+   "answer": "The account holder needs to be in the car for the whole trip, so you can't send a ride to someone riding alone. They can create their own account in a couple of minutes.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "book-06",
+   "category": "Booking",
+   "question": "How old do I have to be to ride?",
+   "alt_phrasings": [
+    "Can my 16-year-old ride alone?",
+    "Age requirement"
+   ],
+   "answer": "Account holders must be 18 or older. Riders 13 to 17 can use a teen account set up by a parent or guardian; children under 13 must ride with an adult.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "book-07",
+   "category": "Booking",
+   "question": "How many people can ride together?",
+   "alt_phrasings": [
+    "Can I bring friends?",
+    "How many seats?"
+   ],
+   "answer": "Up to 4 riders, including you, as long as everyone has a seat and a seatbelt. Guests under 18 must ride with an adult.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "book-08",
+   "category": "Booking",
+   "question": "Can I go to or from the airport?",
+   "alt_phrasings": [
+    "SFO pickup",
+    "Do you serve the airport?"
+   ],
+   "answer": "Airport trips are available to and from the designated rideshare zone. Follow the signs for app-based rides; the app will show the exact pickup spot and your car's number.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Rider reviews and trip reports (topic)"
+  },
+  {
+   "id": "pick-01",
+   "category": "Pickup",
+   "question": "How do I find my car?",
+   "alt_phrasings": [
+    "Which car is mine?",
+    "I can't find the vehicle"
+   ],
+   "answer": "Check the car's ID and roof light color in the app; they match the car. You can also tap Honk or Flash lights to spot it. Once you're next to it, the app unlocks the doors.",
+   "escalation": "none",
+   "uses_vehicle_context": true,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "pick-02",
+   "category": "Pickup",
+   "question": "Where is my car? It's late.",
+   "alt_phrasings": [
+    "Why is my pickup taking so long?",
+    "ETA keeps changing"
+   ],
+   "answer": "Your car's live location and arrival time are in the app. Arrival times can shift with traffic or road closures. If it's running more than 10 minutes behind, you can cancel for free.",
+   "escalation": "none",
+   "uses_vehicle_context": true,
+   "source": "Rider reviews and trip reports (topic)"
+  },
+  {
+   "id": "pick-03",
+   "category": "Pickup",
+   "question": "Why did the car stop somewhere other than my pin?",
+   "alt_phrasings": [
+    "The car parked down the block",
+    "Wrong pickup spot"
+   ],
+   "answer": "The car picks the closest spot where it can stop safely and legally, which can be a short walk from your pin. Walking directions to the car are shown in the app.",
+   "escalation": "none",
+   "uses_vehicle_context": true,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "pick-04",
+   "category": "Pickup",
+   "question": "How long will the car wait for me?",
+   "alt_phrasings": [
+    "What if I'm running late?"
+   ],
+   "answer": "The car waits up to 5 minutes after it arrives. After that the trip may be canceled and a $5 fee applied, since the car was held for you.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "pick-05",
+   "category": "Pickup",
+   "question": "The doors won't unlock.",
+   "alt_phrasings": [
+    "I can't open the car",
+    "Car is locked"
+   ],
+   "answer": "Make sure you're right next to the car with the app open and Bluetooth on, then tap Unlock. If it still won't open, tap Help and a support agent can unlock it remotely.",
+   "escalation": "human",
+   "uses_vehicle_context": true,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "pick-06",
+   "category": "Pickup",
+   "question": "Can I change my pickup location after booking?",
+   "alt_phrasings": [
+    "I'm on the wrong corner"
+   ],
+   "answer": "You can move your pickup pin a short distance in the app before the car arrives. For a bigger change, cancel and rebook; it's free within 2 minutes of requesting.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "pick-07",
+   "category": "Pickup",
+   "question": "Someone else got into my car.",
+   "alt_phrasings": [
+    "A stranger is in my ride"
+   ],
+   "answer": "Don't get in. Tap Help so support can lock the car and speak to the person through the car's speakers. Your trip will be canceled at no charge and a new car sent if you want one.",
+   "escalation": "human",
+   "uses_vehicle_context": true,
+   "source": "Rider reviews and trip reports (topic)"
+  },
+  {
+   "id": "pick-08",
+   "category": "Pickup",
+   "question": "How do I cancel a ride?",
+   "alt_phrasings": [
+    "Cancel my trip"
+   ],
+   "answer": "Tap your trip in the app and choose Cancel. It's free within 2 minutes of requesting or if your car is more than 10 minutes late; otherwise a $5 fee applies.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "ride-01",
+   "category": "During the ride",
+   "question": "How do I start the ride?",
+   "alt_phrasings": [
+    "The car isn't moving",
+    "How do I get going?"
+   ],
+   "answer": "Buckle up and tap Start on the screen in front of you or in the app. The car won't leave until every rider is buckled.",
+   "escalation": "none",
+   "uses_vehicle_context": true,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "ride-02",
+   "category": "During the ride",
+   "question": "Can I change my destination during the ride?",
+   "alt_phrasings": [
+    "Add a stop",
+    "I want to go somewhere else"
+   ],
+   "answer": "Yes. Update your destination in the app and the car reroutes; your fare updates to match the new trip. I can't change it from this chat.",
+   "escalation": "none",
+   "uses_vehicle_context": true,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "ride-03",
+   "category": "During the ride",
+   "question": "How do I pull over or end the ride early?",
+   "alt_phrasings": [
+    "Let me out here",
+    "Stop the car"
+   ],
+   "answer": "Tap Pull over on the screen or in the app. The car finds the next safe place to stop, usually within a block, and you're charged only for the distance traveled.",
+   "escalation": "none",
+   "uses_vehicle_context": true,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "ride-04",
+   "category": "During the ride",
+   "question": "How do I control the music or temperature?",
+   "alt_phrasings": [
+    "It's too cold",
+    "Can I play my music?"
+   ],
+   "answer": "Use the screen in front of you to adjust temperature, fan and music, or connect your phone through the app to play your own audio.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "ride-05",
+   "category": "During the ride",
+   "question": "When will I arrive?",
+   "alt_phrasings": [
+    "How much longer?",
+    "What's my ETA?"
+   ],
+   "answer": "Your current arrival time is on the screen and in the app. It updates live with traffic.",
+   "escalation": "none",
+   "uses_vehicle_context": true,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "ride-06",
+   "category": "During the ride",
+   "question": "Why is the car taking this route?",
+   "alt_phrasings": [
+    "This is the long way",
+    "Why are we going in circles?"
+   ],
+   "answer": "The car picks routes for safety and road conditions, which can differ from a navigation app's fastest path, for example avoiding a closure or a difficult turn. If the route seems wrong or the car is circling, tell me and I'll connect you with a support agent.",
+   "escalation": "human",
+   "uses_vehicle_context": true,
+   "source": "News coverage of rider incidents (topic)"
+  },
+  {
+   "id": "ride-07",
+   "category": "During the ride",
+   "question": "Can you drive faster or take a different road?",
+   "alt_phrasings": [
+    "Speed up",
+    "Go down Market Street instead"
+   ],
+   "answer": "I can't control how the car drives; the driving system decides speed and route for safety. You can change your destination in the app, and the car will reroute.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "News coverage of rider incidents (topic)"
+  },
+  {
+   "id": "ride-08",
+   "category": "During the ride",
+   "question": "Can I eat or drink in the car?",
+   "alt_phrasings": [
+    "Is food allowed?"
+   ],
+   "answer": "Covered drinks and small snacks are fine. Please take trash with you; messes that need extra cleaning can lead to a cleaning fee.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "ride-09",
+   "category": "During the ride",
+   "question": "Do I need to wear a seatbelt?",
+   "alt_phrasings": [
+    "Can I unbuckle?"
+   ],
+   "answer": "Yes, every rider must stay buckled for the whole trip. If someone unbuckles, the car may pull over until they buckle up again.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "ride-10",
+   "category": "During the ride",
+   "question": "How do I get out of the car?",
+   "alt_phrasings": [
+    "How do I open the door?",
+    "Door won't open"
+   ],
+   "answer": "Wait until the car has fully stopped, check for bikes and traffic, then pull the door handle twice. Only exit on the curb side when you can.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "stuck-01",
+   "category": "Stuck or delayed",
+   "question": "Why has the car stopped?",
+   "alt_phrasings": [
+    "We're not moving",
+    "Why are we stopped?"
+   ],
+   "answer": "The car sometimes pauses for blocked lanes, emergency vehicles or construction. When it can't continue on its own, it automatically contacts a remote assistance specialist who helps it find a way forward. You're safe to stay seated with your belt on.",
+   "escalation": "none",
+   "uses_vehicle_context": true,
+   "source": "News coverage of rider incidents (topic)"
+  },
+  {
+   "id": "stuck-02",
+   "category": "Stuck or delayed",
+   "question": "The car has been stuck for a long time. What do I do?",
+   "alt_phrasings": [
+    "We've been stuck for 10 minutes",
+    "This is taking forever"
+   ],
+   "answer": "I'm sorry about the wait. I'm connecting you with a support agent now who can see your car and tell you what's happening. If you'd rather leave, tap Pull over or, when the car is fully stopped somewhere safe, you can exit; you won't be charged for this trip.",
+   "escalation": "human",
+   "uses_vehicle_context": true,
+   "source": "News coverage of rider incidents (topic)"
+  },
+  {
+   "id": "stuck-03",
+   "category": "Stuck or delayed",
+   "question": "What is remote assistance?",
+   "alt_phrasings": [
+    "Is someone driving the car?",
+    "Who helps the car?"
+   ],
+   "answer": "When the car faces something unusual, like a police officer directing traffic, it can ask a trained remote specialist for guidance. The specialist suggests a path and the car still does the driving. If needed, a roadside team can also come to the car.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "News coverage of rider incidents (topic)"
+  },
+  {
+   "id": "stuck-04",
+   "category": "Stuck or delayed",
+   "question": "Can the car be driven by someone remotely?",
+   "alt_phrasings": [
+    "Can support take over?"
+   ],
+   "answer": "Remote specialists can guide the car, for example confirming it's safe to go around an obstacle, but they don't steer it from a distance. If the car can't continue, we send a roadside team to help.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "News coverage of rider incidents (topic)"
+  },
+  {
+   "id": "stuck-05",
+   "category": "Stuck or delayed",
+   "question": "The car is going in circles.",
+   "alt_phrasings": [
+    "It keeps looping",
+    "We keep passing the same place"
+   ],
+   "answer": "That shouldn't happen, and I'm sorry. I'm connecting you with a support agent right now who can stop the loop and get you moving. You won't be charged for this trip.",
+   "escalation": "human",
+   "uses_vehicle_context": true,
+   "source": "News coverage of rider incidents (topic)"
+  },
+  {
+   "id": "stuck-06",
+   "category": "Stuck or delayed",
+   "question": "I'm going to miss my flight because of this delay.",
+   "alt_phrasings": [
+    "I'll be late for work"
+   ],
+   "answer": "I'm sorry, I know that's stressful. I'm connecting you with an agent who can check how quickly your car can get moving and help you decide whether to switch to another ride. Delays caused by the car are refunded.",
+   "escalation": "human",
+   "uses_vehicle_context": true,
+   "source": "News coverage of rider incidents (topic)"
+  },
+  {
+   "id": "stuck-07",
+   "category": "Stuck or delayed",
+   "question": "The car dropped me off in the wrong place.",
+   "alt_phrasings": [
+    "This isn't my destination",
+    "Left me far away"
+   ],
+   "answer": "I'm sorry. Tell me where you were trying to go and I'll connect you with support. If the car didn't reach your destination, we'll refund the trip and can send a new car to finish it.",
+   "escalation": "human",
+   "uses_vehicle_context": true,
+   "source": "News coverage of rider incidents (topic)"
+  },
+  {
+   "id": "safe-01",
+   "category": "Safety",
+   "question": "I'm having a medical emergency.",
+   "alt_phrasings": [
+    "I feel faint",
+    "Someone is hurt",
+    "I can't breathe"
+   ],
+   "answer": "Call 911 now if you can. Also tap the red Help button: an agent will answer right away, can call emergency services to your exact location, and can direct the car to stop somewhere safe.",
+   "escalation": "emergency",
+   "uses_vehicle_context": true,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "safe-02",
+   "category": "Safety",
+   "question": "We were just in a collision.",
+   "alt_phrasings": [
+    "The car crashed",
+    "Someone hit us"
+   ],
+   "answer": "Are you hurt? If anyone is injured, call 911. The car has already alerted our support team, and an agent will speak to you through the car. Stay inside with your seatbelt on unless there's smoke or fire, or the agent tells you it's safe to get out.",
+   "escalation": "emergency",
+   "uses_vehicle_context": true,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "safe-03",
+   "category": "Safety",
+   "question": "I smell smoke or see fire.",
+   "alt_phrasings": [
+    "The car is smoking"
+   ],
+   "answer": "Get out as soon as the car is stopped and it's safe: pull the door handle twice, move well away from the car and traffic, and call 911. Tap Help so our team knows immediately.",
+   "escalation": "emergency",
+   "uses_vehicle_context": true,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "safe-04",
+   "category": "Safety",
+   "question": "I feel unsafe. Someone outside is threatening me.",
+   "alt_phrasings": [
+    "Someone is following the car",
+    "A person is banging on the window"
+   ],
+   "answer": "Keep the doors closed; they stay locked while you're inside. Tap Help now: an agent will stay with you, can move the car away from the person, and can call police. Call 911 if you're in immediate danger.",
+   "escalation": "emergency",
+   "uses_vehicle_context": true,
+   "source": "Rider reviews and trip reports (topic)"
+  },
+  {
+   "id": "safe-05",
+   "category": "Safety",
+   "question": "Another rider in the car is harassing me.",
+   "alt_phrasings": [
+    "My guest is being aggressive"
+   ],
+   "answer": "I'm sorry. Tap Help to reach an agent right away. They can pull the car over somewhere safe and contact police if needed. If you're in immediate danger, call 911.",
+   "escalation": "emergency",
+   "uses_vehicle_context": true,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "safe-06",
+   "category": "Safety",
+   "question": "Is it safe to ride without a driver?",
+   "alt_phrasings": [
+    "Are these cars safe?",
+    "I'm nervous"
+   ],
+   "answer": "It's normal to feel nervous on your first ride. The car watches all around it at once and follows the speed limit, and a support agent is always one tap away. If you ever want to stop, tap Pull over.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "safe-07",
+   "category": "Safety",
+   "question": "The car is driving erratically.",
+   "alt_phrasings": [
+    "The car braked really hard",
+    "It almost hit something"
+   ],
+   "answer": "Thanks for telling me. If you feel unsafe right now, tap Pull over and the car will stop at the next safe spot. I'm also flagging this for our safety team and connecting you with an agent.",
+   "escalation": "human",
+   "uses_vehicle_context": true,
+   "source": "News coverage of rider incidents (topic)"
+  },
+  {
+   "id": "safe-08",
+   "category": "Safety",
+   "question": "There's an emergency vehicle behind us.",
+   "alt_phrasings": [
+    "Ambulance coming",
+    "Police lights behind us"
+   ],
+   "answer": "The car detects sirens and lights and will move over or stop to let emergency vehicles pass. You don't need to do anything.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "News coverage of rider incidents (topic)"
+  },
+  {
+   "id": "acc-01",
+   "category": "Accessibility",
+   "question": "Do you have wheelchair-accessible vehicles?",
+   "alt_phrasings": [
+    "I use a wheelchair",
+    "WAV"
+   ],
+   "answer": "Yes, select the accessible van option when you book. Availability can be limited, so the app shows the wait time before you confirm. Standard cars can carry a folding wheelchair in the trunk.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "acc-02",
+   "category": "Accessibility",
+   "question": "Can I bring my service animal?",
+   "alt_phrasings": [
+    "Guide dog",
+    "Service dog"
+   ],
+   "answer": "Yes. Service animals are always welcome at no extra charge. They should stay on the floor during the ride.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "acc-03",
+   "category": "Accessibility",
+   "question": "I'm blind or have low vision. How do I find the car?",
+   "alt_phrasings": [
+    "Accessibility features for blind riders"
+   ],
+   "answer": "The app works with your phone's screen reader and gives turn-by-turn walking directions to the car. Tap Honk to hear where it is, and the car plays an audio greeting when you open the door.",
+   "escalation": "none",
+   "uses_vehicle_context": true,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "acc-04",
+   "category": "Accessibility",
+   "question": "I'm deaf or hard of hearing. How do I contact support?",
+   "alt_phrasings": [
+    "Can I text support?"
+   ],
+   "answer": "You can reach support by text chat in the app or on the car's screen at any time, including during an emergency. Important announcements also appear on the screen.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "acc-05",
+   "category": "Accessibility",
+   "question": "Can I get help loading a mobility device?",
+   "alt_phrasings": [
+    "I need help getting in"
+   ],
+   "answer": "There's no driver on board to help with loading. If you need assistance, a companion can ride with you, or you can book the accessible van, which has a ramp. Tell me what you need and I can connect you with our accessibility team.",
+   "escalation": "human",
+   "uses_vehicle_context": false,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "acc-06",
+   "category": "Accessibility",
+   "question": "The accessible van didn't work for me.",
+   "alt_phrasings": [
+    "The ramp didn't deploy"
+   ],
+   "answer": "I'm really sorry. I'm connecting you with our accessibility team so they can make this right and refund the trip if needed.",
+   "escalation": "human",
+   "uses_vehicle_context": true,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "kid-01",
+   "category": "Kids, pets and belongings",
+   "question": "Can I ride with my child?",
+   "alt_phrasings": [
+    "Do you have car seats?",
+    "Booster seat"
+   ],
+   "answer": "Yes, children can ride with an adult. Children who need a car seat or booster must use one, and you'll need to bring and install your own, since cars don't come with them.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "kid-02",
+   "category": "Kids, pets and belongings",
+   "question": "Can I bring my pet?",
+   "alt_phrasings": [
+    "Can my dog come?",
+    "Cat in a carrier"
+   ],
+   "answer": "Pets are welcome if they're in a closed carrier that stays on your lap or the floor. Service animals don't need a carrier.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "kid-03",
+   "category": "Kids, pets and belongings",
+   "question": "Can I bring a stroller or luggage?",
+   "alt_phrasings": [
+    "Big suitcase",
+    "Folding stroller"
+   ],
+   "answer": "Yes. Strollers and luggage go in the trunk; the trunk opens from the app. Make sure everything fits so the doors and trunk can close.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "kid-04",
+   "category": "Kids, pets and belongings",
+   "question": "Can my teenager ride alone?",
+   "alt_phrasings": [
+    "Teen account"
+   ],
+   "answer": "Riders 13 to 17 can ride alone with a teen account that a parent or guardian sets up and manages. Parents can see the trip live in their app.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "rule-01",
+   "category": "Rules",
+   "question": "Can I bring alcohol or smoke in the car?",
+   "alt_phrasings": [
+    "Can I vape?",
+    "Open container"
+   ],
+   "answer": "No. Smoking, vaping, and open alcohol aren't allowed in the car. Smoking or vaping can lead to a cleaning fee of up to $150.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "kid-06",
+   "category": "Kids, pets and belongings",
+   "question": "Can I bring my bike or scooter?",
+   "alt_phrasings": [
+    "E-scooter in the trunk"
+   ],
+   "answer": "Only if it folds and fits fully in the trunk. Full-size bikes and e-bikes can't be carried.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Rider reviews and trip reports (topic)"
+  },
+  {
+   "id": "pay-01",
+   "category": "Payments",
+   "question": "How much does a ride cost?",
+   "alt_phrasings": [
+    "What's the fare?",
+    "Pricing"
+   ],
+   "answer": "You see the full fare before you confirm. It's based on distance and expected time, and the price you confirm is what you pay unless you change the destination.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "pay-02",
+   "category": "Payments",
+   "question": "Why was I charged more than the quoted fare?",
+   "alt_phrasings": [
+    "Overcharged",
+    "Fare is higher than expected"
+   ],
+   "answer": "Fares change only if the destination was changed during the trip or a cleaning fee was added. If neither happened, I'll connect you with support to review and correct the charge.",
+   "escalation": "human",
+   "uses_vehicle_context": false,
+   "source": "Rider reviews and trip reports (topic)"
+  },
+  {
+   "id": "pay-03",
+   "category": "Payments",
+   "question": "Should I tip?",
+   "alt_phrasings": [
+    "Tipping"
+   ],
+   "answer": "No tip needed. There's no driver, and the fare covers everything.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Rider reviews and trip reports (topic)"
+  },
+  {
+   "id": "pay-04",
+   "category": "Payments",
+   "question": "How do I get a refund?",
+   "alt_phrasings": [
+    "I want my money back",
+    "Refund my trip"
+   ],
+   "answer": "If the car didn't finish your trip, or had a long delay, we refund it automatically. For anything else, tell me what happened and I'll connect you with an agent who can review it; most reviews are done within 24 hours.",
+   "escalation": "human",
+   "uses_vehicle_context": false,
+   "source": "Rider reviews and trip reports (topic)"
+  },
+  {
+   "id": "pay-05",
+   "category": "Payments",
+   "question": "Why was I charged a cleaning fee?",
+   "alt_phrasings": [
+    "Cleaning fee",
+    "Fee for mess"
+   ],
+   "answer": "Cleaning fees apply when the car needs extra cleaning after a trip: $50 for things like spills or crumbs, up to $150 for smoking, vaping or serious messes. You'll get an email with details. If you think it's a mistake, I'll connect you with support to review the interior photos.",
+   "escalation": "human",
+   "uses_vehicle_context": false,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "pay-06",
+   "category": "Payments",
+   "question": "How do I add or change a payment method?",
+   "alt_phrasings": [
+    "Update my card"
+   ],
+   "answer": "Go to Account, then Payment in the app. I can't take card details in chat, so please don't share them here.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "pay-07",
+   "category": "Payments",
+   "question": "Was I charged for a canceled ride?",
+   "alt_phrasings": [
+    "Cancellation fee"
+   ],
+   "answer": "Cancellations are free within 2 minutes of requesting, or if your car was more than 10 minutes late. Otherwise there's a $5 fee. If you were charged when you shouldn't have been, I can connect you with support.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "pay-08",
+   "category": "Payments",
+   "question": "Where can I get a receipt?",
+   "alt_phrasings": [
+    "Receipt for expenses"
+   ],
+   "answer": "Receipts are emailed after every trip and are always in Ride history in the app, where you can download a PDF.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "lost-01",
+   "category": "Lost items",
+   "question": "I left something in the car.",
+   "alt_phrasings": [
+    "Lost my phone",
+    "Forgot my bag"
+   ],
+   "answer": "Report it in the app under Ride history, then select the trip and Lost item. We check the car's interior and hold found items for 30 days at our Mission Bay depot, where you can pick them up or arrange delivery.",
+   "escalation": "human",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "lost-02",
+   "category": "Lost items",
+   "question": "I left my phone in the car and need it urgently.",
+   "alt_phrasings": [
+    "Medication left in car"
+   ],
+   "answer": "I'm connecting you with an agent now. For urgent items like a phone, keys or medication, we can sometimes hold the car or send it back to you shortly.",
+   "escalation": "human",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "lost-03",
+   "category": "Lost items",
+   "question": "I found something someone else left.",
+   "alt_phrasings": [
+    "Someone forgot a wallet"
+   ],
+   "answer": "Thanks for telling us. Leave it on the seat and let me know what and where it is; we'll keep it safe for its owner.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "lost-04",
+   "category": "Lost items",
+   "question": "The car is dirty.",
+   "alt_phrasings": [
+    "Seat is wet",
+    "Trash in the car"
+   ],
+   "answer": "Sorry about that. You can report it in the app; we'll take the car out of service for cleaning. If it's too dirty to ride, tap Pull over or cancel before starting, and you won't be charged.",
+   "escalation": "none",
+   "uses_vehicle_context": true,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "lost-05",
+   "category": "Lost items",
+   "question": "Something in the car is broken.",
+   "alt_phrasings": [
+    "Screen not working",
+    "Seatbelt broken"
+   ],
+   "answer": "Thanks for letting us know. If it's a seatbelt or door, please don't ride: cancel and we'll send another car at no charge. For anything else, report it in the app and we'll fix it after your trip.",
+   "escalation": "human",
+   "uses_vehicle_context": true,
+   "source": "Published robotaxi rider rules (topic)"
+  },
+  {
+   "id": "priv-01",
+   "category": "Privacy",
+   "question": "Are there cameras in the car?",
+   "alt_phrasings": [
+    "Am I being recorded?",
+    "Is there video?"
+   ],
+   "answer": "Yes, the car has interior cameras. Video is reviewed only for safety, incidents, cleanliness, lost items or rule violations, not routinely watched.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "priv-02",
+   "category": "Privacy",
+   "question": "Does the car record audio?",
+   "alt_phrasings": [
+    "Is it listening?"
+   ],
+   "answer": "The car doesn't record cabin audio during normal rides. Audio is recorded only when you're talking with a support agent.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "priv-03",
+   "category": "Privacy",
+   "question": "What do you do with my trip data?",
+   "alt_phrasings": [
+    "Data privacy"
+   ],
+   "answer": "Trip data is used to run the service, handle support and improve safety. You can see and download your data under Account, then Privacy in the app.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "priv-04",
+   "category": "Privacy",
+   "question": "Can I delete my account?",
+   "alt_phrasings": [
+    "Close my account"
+   ],
+   "answer": "Yes, go to Account, then Privacy, then Delete account. If you have an open refund or claim, it's best to wait until it's resolved.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "inc-01",
+   "category": "Incidents",
+   "question": "How do I report an incident or make a claim?",
+   "alt_phrasings": [
+    "Insurance claim",
+    "My car was damaged by your vehicle"
+   ],
+   "answer": "I'm sorry this happened. I'll connect you with our incident team, who handle claims and information exchange. Please have the time, location and any photos ready.",
+   "escalation": "human",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "inc-02",
+   "category": "Incidents",
+   "question": "I want to give feedback about a ride.",
+   "alt_phrasings": [
+    "Complaint",
+    "Feedback"
+   ],
+   "answer": "Thanks, I'd like to hear it. You can rate the trip and leave comments in Ride history, or tell me here and I'll pass it to the team.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "inc-03",
+   "category": "Incidents",
+   "question": "I want to talk to a human.",
+   "alt_phrasings": [
+    "Real person please",
+    "Agent"
+   ],
+   "answer": "Of course. I'm connecting you with a support agent now.",
+   "escalation": "human",
+   "uses_vehicle_context": false,
+   "source": "Rider reviews and trip reports (topic)"
+  },
+  {
+   "id": "inc-04",
+   "category": "Incidents",
+   "question": "Was I hurt in the collision? Should I see a doctor?",
+   "alt_phrasings": [
+    "I feel sore after the crash"
+   ],
+   "answer": "If you're in pain or think you might be hurt, please see a doctor. I can't give medical advice. I'm connecting you with our incident team so they can follow up with you.",
+   "escalation": "human",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "tech-01",
+   "category": "About the technology",
+   "question": "How does the car see the road?",
+   "alt_phrasings": [
+    "How does it work?"
+   ],
+   "answer": "The car uses lidar, radar and cameras to see 360 degrees around it, day and night, and software that predicts what other road users will do.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "tech-02",
+   "category": "About the technology",
+   "question": "What happens if the car's system has a problem?",
+   "alt_phrasings": [
+    "What if it breaks down?"
+   ],
+   "answer": "The car constantly checks its own systems. If something isn't right, it pulls over safely, and support contacts you right away to arrange another ride.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  },
+  {
+   "id": "tech-03",
+   "category": "About the technology",
+   "question": "Why does the car drive so cautiously?",
+   "alt_phrasings": [
+    "It's so slow",
+    "Too careful"
+   ],
+   "answer": "The car is designed to follow speed limits and leave extra room around pedestrians, cyclists and other cars, which can feel careful compared with human drivers.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Rider reviews and trip reports (topic)"
+  },
+  {
+   "id": "tech-04",
+   "category": "About the technology",
+   "question": "Does the car drive in bad weather?",
+   "alt_phrasings": [
+    "Rain",
+    "Fog"
+   ],
+   "answer": "It drives in light rain and fog. In heavy rain or very low visibility, service may pause, and cars on a trip will finish it or pull over safely.",
+   "escalation": "none",
+   "uses_vehicle_context": false,
+   "source": "Robotaxi help-center FAQs (topic)"
+  }
+ ]
+}

@@ -1,0 +1,18 @@
+{
+ "waiting": {
+  "label": "Waiting for pickup",
+  "context": {"trip_status": "car_on_the_way", "vehicle_id": "AV-1029", "pickup": "4th St & King St", "destination": "Ferry Building", "pickup_eta_minutes": 4, "quoted_fare": "$14.20"}
+ },
+ "in_trip": {
+  "label": "Riding normally",
+  "context": {"trip_status": "in_trip", "vehicle_id": "AV-1001", "pickup": "Mission Dolores Park", "destination": "Ferry Building", "arrival_eta_minutes": 9, "riders_onboard": 2, "quoted_fare": "$18.75"}
+ },
+ "stuck": {
+  "label": "Car stopped, waiting for remote assist",
+  "context": {"trip_status": "stopped_awaiting_remote_assist", "vehicle_id": "AV-1365", "pickup": "Union Square", "destination": "SFO Terminal 2", "stopped_minutes": 6, "stop_reason": "Blocked by double-parked delivery truck", "remote_assist_status": "specialist reviewing", "arrival_eta_minutes": null, "quoted_fare": "$42.10"}
+ },
+ "none": {
+  "label": "No active ride",
+  "context": null
+ }
+}

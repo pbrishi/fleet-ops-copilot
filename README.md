@@ -8,6 +8,15 @@ An AI copilot for autonomous vehicle fleet operations, built in public as an AI 
 
 A fleet operations console in [`web/`](web/) (Next.js, static export): a simulated 60-vehicle fleet with live map, vehicle health and faults, plus an **incident triage queue of 120 real NHTSA crash reports** showing Gemini's triage next to the human-reviewed label. Triage is precomputed, so the public demo makes no model calls.
 
+## Rider support copilot
+
+A chat assistant for riders of **Copilot Rides**, a fictional robotaxi service (portal page `/rider`). It answers only from a 78-article knowledge base plus the rider's live trip context, cites the articles it used, and picks an escalation level: answered, hand off to an agent, or emergency.
+
+- **Knowledge base:** [`web/src/rider/kb.json`](web/src/rider/kb.json), built by [`scripts/build_rider_kb.py`](scripts/build_rider_kb.py). Question topics were researched from public robotaxi help centers, rider reviews and news coverage; every answer and policy is original and fictional.
+- **Design:** the whole knowledge base (~6k tokens) goes in the prompt. At this size that's simpler and more reliable than retrieval. The prompt bundle is shared by the web route and the eval, so the site runs exactly what was evaluated.
+- **Eval:** 52 test conversations across knowledge-base questions, trip-context use, emergencies, out-of-scope and adversarial inputs (prompt injection, card numbers, promised credits). Deterministic checks plus a stronger model as judge for faithfulness. Results in [`evals/results/`](evals/results/).
+- **Next:** voice input and spoken replies.
+
 ## Results so far (M1, development set)
 
 | Metric | Prompt v1 | Prompt v2 |
