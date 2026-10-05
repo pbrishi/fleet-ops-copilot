@@ -1,12 +1,22 @@
 # Fleet Ops Copilot
 
-**Live demo: [fleet-ops-copilot.vercel.app](https://fleet-ops-copilot.vercel.app)**
+**Live demo:** ops console [fleet-ops-copilot.vercel.app](https://fleet-ops-copilot.vercel.app) · rider app [fleet-ops-copilot.vercel.app/ride](https://fleet-ops-copilot.vercel.app/ride)
 
 An AI copilot for autonomous vehicle fleet operations, built in public as an AI product management portfolio project. Every capability ships with an eval, so quality is measured, not assumed.
 
 ## Portal
 
 A fleet operations console in [`web/`](web/) (Next.js, static export): a simulated 60-vehicle fleet with live map, vehicle health and faults, plus an **incident triage queue of 120 real NHTSA crash reports** showing Gemini's triage next to the human-reviewed label. Triage is precomputed, so the public demo makes no model calls.
+
+## Copilot Rides rider app
+
+An iPhone-style rider app at [`/ride`](https://fleet-ops-copilot.vercel.app/ride) (Magic UI iPhone frame on desktop, full screen on a phone), riding the same simulated fleet the console monitors. Plan and decisions: [`docs/rider-app-plan.md`](docs/rider-app-plan.md).
+
+- **Flow:** sign in → home with nearby cars and one-tap priced destinations → matching → live ETA as the car drives a real street route → unlock at pickup → seatbelt check → start (doors close and lock) → in-trip progress → arrive → pay → rate → home.
+- **Safety rules in one pure state machine** ([`web/src/rider-app/trip.ts`](web/src/rider-app/trip.ts)) with 18 unit tests: doors never unlock while moving; pickup unlock needs the rider at the car; start needs a fastened seatbelt; emergency stop decelerates to a safe stop; ending early is prorated; cancellation is free for 2 minutes.
+- **Emergency sheet:** pull over now, call 911 (deliberately not a live call in the public demo), talk to support.
+- **Support copilot in the app** (chat + voice) gets live trip context: vehicle, ETA, doors, speed.
+- **Simulated for now:** vehicles, payment (Stripe test mode next), music (simulated player next). Native iOS build via Capacitor is planned.
 
 ## Rider support copilot
 

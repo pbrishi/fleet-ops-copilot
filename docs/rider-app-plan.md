@@ -1,6 +1,6 @@
 # Copilot Rides: iOS rider app plan
 
-**Status:** Approved 2026-10-04; building P1-P3
+**Status:** P1-P3 shipped 2026-10-04 at /ride; P4-P7 next
 **Date:** 2026-10-04
 
 ## 1. Goal
