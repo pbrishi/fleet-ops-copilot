@@ -18,8 +18,10 @@ function FitTo({ points, bottom }: { points: LatLng[]; bottom: number }) {
   const key = points.length ? `${points[0].join()}|${points.at(-1)!.join()}|${points.length}` : "";
   useEffect(() => {
     if (!points.length) return;
-    if (points.length === 1) map.setView(points[0], 16, { animate: true });
-    else map.fitBounds(points, { paddingTopLeft: [36, 80], paddingBottomRight: [36, bottom], maxZoom: 17, animate: true });
+    // No animated pan/zoom: screens swap maps mid-trip, and Leaflet throws if a map is
+    // removed while a zoom animation is still running.
+    if (points.length === 1) map.setView(points[0], 16, { animate: false });
+    else map.fitBounds(points, { paddingTopLeft: [36, 80], paddingBottomRight: [36, bottom], maxZoom: 17, animate: false });
     // Refit only when the set of points changes meaningfully, not on every car movement.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, map]);
@@ -41,7 +43,7 @@ export default function RideMap({
   bottomPadding?: number;
 }) {
   return (
-    <MapContainer center={fit[0] ?? [37.7879, -122.4075]} zoom={15} zoomControl={false} attributionControl={false} style={{ height: "100%", width: "100%", background: "#0b1120" }}>
+    <MapContainer center={fit[0] ?? [37.7879, -122.4075]} zoom={15} zoomControl={false} attributionControl={false} zoomAnimation={false} fadeAnimation={false} markerZoomAnimation={false} style={{ height: "100%", width: "100%", background: "#0b1120" }}>
       <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}" maxNativeZoom={16} />
       <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}" maxNativeZoom={16} />
       {route && route.length > 1 && (
