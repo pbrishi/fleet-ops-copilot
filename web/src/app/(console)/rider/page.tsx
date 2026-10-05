@@ -5,12 +5,11 @@ import { Badge, Card, PageHeader } from "@/components/dashboard";
 import { BlurFade } from "@/components/ui/blur-fade";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
 import { Mic, Play, Square, Volume2, VolumeX } from "lucide-react";
-import { SilentRecordingError, speak, startRecording } from "@/lib/audio";
-import { DEFAULT_VOICE, VOICES, type VoiceId } from "@/rider/voices";
+import { useRiderChat, type Escalation } from "@/rider/useRiderChat";
+import { VOICES, type VoiceId } from "@/rider/voices";
 import kbData from "@/rider/kb.json";
 import scenarios from "@/rider/scenarios.json";
 
-type Escalation = "none" | "human" | "emergency";
 interface Article {
   id: string;
   category: string;
@@ -20,15 +19,6 @@ interface Article {
   escalation: Escalation;
   uses_vehicle_context: boolean;
   source: string;
-}
-interface Message {
-  role: "user" | "assistant";
-  text: string;
-  cited?: string[];
-  escalation?: Escalation;
-  error?: boolean;
-  voice?: boolean; // rider spoke this turn
-  pending?: boolean; // voice turn still being transcribed
 }
 type ScenarioKey = keyof typeof scenarios;
 
@@ -84,118 +74,25 @@ export default function RiderPage() {
 
 function Chat({ onOpenArticle }: { onOpenArticle: (id: string) => void }) {
   const [scenario, setScenario] = useState<ScenarioKey>("stuck");
-  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [sending, setSending] = useState(false);
-  const [recording, setRecording] = useState(false);
-  const [recordSecs, setRecordSecs] = useState(0);
-  const [micError, setMicError] = useState<string | null>(null);
-  const [speakReplies, setSpeakReplies] = useState(true);
-  const [voice, setVoice] = useState<VoiceId>(DEFAULT_VOICE);
-  const [speakingIndex, setSpeakingIndex] = useState<number | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
-  const recorderRef = useRef<Awaited<ReturnType<typeof startRecording>> | null>(null);
-  const stopSpeechRef = useRef<(() => void) | null>(null);
   const context = scenarios[scenario].context;
+  const chat = useRiderChat(context);
+  const { messages, sending, recording, recordSecs, micError, speakReplies, voice, speakingIndex, lastEscalation } = chat;
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [messages, sending]);
 
-  useEffect(() => {
-    if (!recording) return;
-    const id = setInterval(() => setRecordSecs((s) => s + 1), 1000);
-    return () => clearInterval(id);
-  }, [recording]);
-
-  // Stop any audio when leaving the page.
-  useEffect(() => () => stopSpeechRef.current?.(), []);
-
-  const stopSpeaking = () => {
-    stopSpeechRef.current?.();
-    stopSpeechRef.current = null;
-  };
-
-  const playReply = (index: number, text: string) => {
-    stopSpeaking();
-    setSpeakingIndex(index);
-    stopSpeechRef.current = speak(text, voice, () => setSpeakingIndex((cur) => (cur === index ? null : cur)));
-  };
-
   const switchScenario = (s: ScenarioKey) => {
-    stopSpeaking();
     setScenario(s);
-    setMessages([]);
+    chat.reset();
   };
 
-  // Text turns send `text`; voice turns send the recording and get the transcript back.
-  async function send(turn: { text: string } | { audio: string }) {
-    if (sending) return;
-    const isVoice = "audio" in turn;
-    if (!isVoice && !turn.text.trim()) return;
-    stopSpeaking();
-    const prior = messages.filter((m) => !m.error && !m.pending);
-    const userMsg: Message = isVoice ? { role: "user", text: "Transcribing…", voice: true, pending: true } : { role: "user", text: turn.text.trim() };
-    setMessages([...messages, userMsg]);
+  const send = (turn: { text: string }) => {
     setInput("");
-    setSending(true);
-    try {
-      const res = await fetch("/api/rider-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [...prior, ...(isVoice ? [] : [userMsg])].map(({ role, text }) => ({ role, text })),
-          rideContext: context,
-          ...(isVoice ? { audio: { mimeType: "audio/wav", data: turn.audio } } : {}),
-        }),
-      });
-      const data = await res.json();
-      const reply: Message = res.ok
-        ? { role: "assistant", text: data.reply, cited: data.cited_articles, escalation: data.escalation }
-        : { role: "assistant", text: data.message ?? "Something went wrong. Please try again.", error: true };
-      setMessages((m) => [
-        ...(isVoice ? m.map((x) => (x.pending ? { ...x, text: res.ok ? data.transcript || "(couldn't make that out)" : "Voice message", pending: false } : x)) : m),
-        reply,
-      ]);
-      // The reply lands right after the rider's turn.
-      if (res.ok && speakReplies) playReply(messages.length + 1, data.reply);
-    } catch {
-      setMessages((m) => [...m.map((x) => (x.pending ? { ...x, text: "Voice message", pending: false } : x)), { role: "assistant", text: "Couldn't reach support. Check your connection and try again.", error: true }]);
-    } finally {
-      setSending(false);
-    }
-  }
-
-  async function toggleRecording() {
-    setMicError(null);
-    if (recording) {
-      setRecording(false);
-      try {
-        const audio = await recorderRef.current!.stop();
-        if (recordSecs < 1) return setMicError("That was very short. Hold on a moment longer, then tap stop.");
-        await send({ audio });
-      } catch (e) {
-        setMicError(
-          e instanceof SilentRecordingError
-            ? "I didn't hear anything. Check that the right microphone is selected and not muted, then try again."
-            : "Couldn't process that recording. Please try again or type your message.",
-        );
-      }
-      return;
-    }
-    try {
-      stopSpeaking();
-      recorderRef.current = await startRecording();
-      setRecordSecs(0);
-      setRecording(true);
-      // Auto-stop at the 20s limit is handled inside the recorder; reflect it here.
-      recorderRef.current.done.then(() => setRecording(false)).catch(() => setRecording(false));
-    } catch {
-      setMicError("Microphone access was blocked. Allow it in your browser's site settings, or type instead.");
-    }
-  }
-
-  const lastEscalation = [...messages].reverse().find((m) => m.escalation)?.escalation;
+    chat.send(turn);
+  };
 
   return (
     <div className="grid gap-4 xl:grid-cols-3">
@@ -206,10 +103,7 @@ function Chat({ onOpenArticle }: { onOpenArticle: (id: string) => void }) {
         action={
           <div className="flex items-center gap-2">
             <button
-              onClick={() => {
-                if (speakReplies) stopSpeaking();
-                setSpeakReplies(!speakReplies);
-              }}
+              onClick={() => chat.setSpeakReplies(!speakReplies)}
               aria-pressed={speakReplies}
               className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition ${speakReplies ? "border-sky-400/40 bg-sky-500/10 text-sky-200" : "border-white/10 text-slate-400"}`}
               title="Read replies aloud"
@@ -219,7 +113,7 @@ function Chat({ onOpenArticle }: { onOpenArticle: (id: string) => void }) {
             </button>
             <select
               value={voice}
-              onChange={(e) => setVoice(e.target.value as VoiceId)}
+              onChange={(e) => chat.setVoice(e.target.value as VoiceId)}
               aria-label="Reply voice"
               className="rounded-full border border-white/10 bg-slate-950 px-2.5 py-1 text-xs text-slate-300"
             >
@@ -267,7 +161,7 @@ function Chat({ onOpenArticle }: { onOpenArticle: (id: string) => void }) {
                 {m.role === "assistant" && !m.error && (
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                     <button
-                      onClick={() => (speakingIndex === i ? (stopSpeaking(), setSpeakingIndex(null)) : playReply(i, m.text))}
+                      onClick={() => (speakingIndex === i ? chat.stopSpeaking() : chat.playReply(i, m.text))}
                       className="flex items-center gap-1 rounded bg-slate-900/70 px-1.5 py-0.5 text-[11px] text-slate-400 hover:text-sky-300"
                       aria-label={speakingIndex === i ? "Stop speaking" : "Play reply"}
                     >
@@ -321,7 +215,7 @@ function Chat({ onOpenArticle }: { onOpenArticle: (id: string) => void }) {
         >
           <button
             type="button"
-            onClick={toggleRecording}
+            onClick={chat.toggleRecording}
             disabled={sending}
             aria-label={recording ? "Stop recording and send" : "Speak to support"}
             className={`relative flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl border transition disabled:opacity-50 ${
@@ -335,7 +229,7 @@ function Chat({ onOpenArticle }: { onOpenArticle: (id: string) => void }) {
             <div className="flex min-w-0 flex-1 items-center gap-3 rounded-xl border border-rose-400/30 bg-rose-500/5 px-4 text-sm text-rose-100">
               <span className="h-2 w-2 animate-pulse rounded-full bg-rose-400" />
               Listening… {recordSecs}s <span className="text-xs text-rose-200/60">(tap stop to send · 20s max)</span>
-              <button type="button" onClick={() => { recorderRef.current?.cancel(); setRecording(false); }} className="ml-auto text-xs text-rose-200/80 hover:text-rose-100">
+              <button type="button" onClick={chat.cancelRecording} className="ml-auto text-xs text-rose-200/80 hover:text-rose-100">
                 Cancel
               </button>
             </div>

@@ -8,7 +8,7 @@ const eslintConfig = defineConfig([
   // Vendored Magic UI components (installed via the shadcn registry); keep them close to upstream.
   {
     files: ["src/components/ui/**"],
-    rules: { "react-hooks/set-state-in-effect": "off" },
+    rules: { "react-hooks/set-state-in-effect": "off", "@next/next/no-img-element": "off" },
   },
   // Override default ignores of eslint-config-next.
   globalIgnores([

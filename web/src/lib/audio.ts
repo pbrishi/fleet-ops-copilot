@@ -95,6 +95,9 @@ export function speak(text: string, voice: string, onEnd?: () => void) {
       signal: controller.signal,
     }).then((r) => (r.ok ? r.blob() : Promise.reject(new Error(`tts ${r.status}`)))),
   );
+  // Clips may be aborted (rider stops playback, closes the chat) before they're awaited;
+  // mark them handled so that isn't reported as an uncaught error. The loop below still sees the rejection.
+  clips.forEach((c) => c.catch(() => {}));
   let current: HTMLAudioElement | null = null;
   let stopped = false;
 
