@@ -14,7 +14,8 @@ from google.genai import types
 
 OUT = Path("web/public/voice")
 VOICE = "Charon"
-STYLE = "Say in a calm, warm, professional tone, like a premium car's announcement system:"
+# No style instructions in the prompt: this TTS model reads them aloud ("Say in a calm tone...").
+# Every clip is transcribed after generation to make sure only the announcement is spoken.
 
 ANNOUNCEMENTS = {
     "welcome": "Welcome to Auto-Drive. Please fasten your seatbelt, and tap Start when you're ready to go.",
@@ -28,6 +29,25 @@ ANNOUNCEMENTS = {
 }
 
 
+def transcribe(client, wav: bytes) -> str:
+    resp = client.models.generate_content(
+        model="gemini-flash-latest",
+        contents=[types.Part.from_bytes(data=wav, mime_type="audio/wav"), "Transcribe this audio exactly. Return only the words spoken."],
+        config=types.GenerateContentConfig(temperature=0),
+    )
+    return (resp.text or "").strip()
+
+
+def squash(s: str) -> str:
+    return "".join(c for c in s.lower() if c.isalnum())
+
+
+def matches(expected: str, heard: str) -> bool:
+    """Same words in the same order (ignoring spacing/punctuation), with nothing extra spoken."""
+    e, h = squash(expected), squash(heard)
+    return h.startswith(e[:20]) and abs(len(h) - len(e)) <= 6
+
+
 def main() -> None:
     load_dotenv(".env")
     client = genai.Client()
@@ -37,7 +57,7 @@ def main() -> None:
             try:
                 resp = client.models.generate_content(
                     model="gemini-3.8-flash-tts",
-                    contents=f"{STYLE} {text}",
+                    contents=text,
                     config=types.GenerateContentConfig(
                         response_modalities=["AUDIO"],
                         speech_config=types.SpeechConfig(voice_config=types.VoiceConfig(prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=VOICE))),
@@ -49,7 +69,12 @@ def main() -> None:
                     raise
                 time.sleep(15 * (attempt + 1))
         wav = OUT / f"{name}.wav"
-        wav.write_bytes(resp.candidates[0].content.parts[0].inline_data.data)  # complete WAV from Gemini
+        audio = resp.candidates[0].content.parts[0].inline_data.data  # complete WAV from Gemini
+        heard = transcribe(client, audio)
+        if not matches(text, heard):
+            raise SystemExit(f"{name}: clip doesn't match its text.\n  expected: {text}\n  heard:    {heard}")
+        print(f"{name}: verified \"{heard}\"")
+        wav.write_bytes(audio)
         m4a = OUT / f"{name}.m4a"
         subprocess.run(["afconvert", "-f", "m4af", "-d", "aac", "-b", "64000", str(wav), str(m4a)], check=True)
         wav.unlink()

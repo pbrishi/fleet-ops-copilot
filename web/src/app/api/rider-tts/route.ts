@@ -30,8 +30,8 @@ export async function POST(request: Request) {
   try {
     const resp = await ai.models.generateContent({
       model: MODEL,
-      // The style instruction is read by the TTS model, not spoken.
-      contents: `Say in a calm, professional, reassuring tone, at a measured pace: ${text}`,
+      // Send only the words to speak: this TTS model reads style instructions aloud.
+      contents: text,
       config: {
         responseModalities: ["AUDIO"],
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },

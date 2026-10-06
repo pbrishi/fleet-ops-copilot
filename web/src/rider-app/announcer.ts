@@ -23,19 +23,63 @@ const ARRIVING_WITHIN_M = 350;
 const SEATBELT_NAG_AFTER_MS = 4000;
 const SEATBELT_REPEAT_MS = 15000;
 
+// One message at a time: each announcement finishes before the next starts, and the caption
+// follows the audio. Duplicates already queued or playing are skipped.
 let audio: HTMLAudioElement | null = null;
+const queue: AnnouncementId[] = [];
+let current: AnnouncementId | null = null;
+let soundOn = true;
+let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
+let onChange: ((id: AnnouncementId | null) => void) | null = null;
 
-function play(id: AnnouncementId) {
+// Rough reading time for captions when sound is off or playback is blocked.
+const captionMs = (id: AnnouncementId) => Math.max(3000, ANNOUNCEMENTS[id].split(" ").length * 380);
+
+function startNext() {
+  if (fallbackTimer) clearTimeout(fallbackTimer);
+  fallbackTimer = null;
+  current = queue.shift() ?? null;
+  onChange?.(current);
+  if (!current) return;
+  const id = current;
+  const advance = () => {
+    if (current === id) startNext();
+  };
+  if (!soundOn) {
+    fallbackTimer = setTimeout(advance, captionMs(id));
+    return;
+  }
   try {
     audio ??= new Audio();
-    audio.pause();
+    audio.onended = advance;
+    audio.onerror = advance;
     audio.src = `/voice/${id}.m4a`;
-    void audio.play().catch(() => {
-      // Autoplay can be blocked before the first tap; the caption still shows.
+    audio.play().catch(() => {
+      // Autoplay can be blocked before the first tap: show the caption for its reading time instead.
+      fallbackTimer = setTimeout(advance, captionMs(id));
     });
   } catch {
-    // No audio support: captions only.
+    fallbackTimer = setTimeout(advance, captionMs(id));
   }
+}
+
+function enqueue(id: AnnouncementId) {
+  if (current === id || queue.includes(id)) return;
+  queue.push(id);
+  if (!current) startNext();
+}
+
+function clearQueue() {
+  queue.length = 0;
+  if (fallbackTimer) clearTimeout(fallbackTimer);
+  fallbackTimer = null;
+  current = null;
+  if (audio) {
+    audio.onended = null;
+    audio.onerror = null;
+    audio.pause();
+  }
+  onChange?.(null);
 }
 
 // Watches the trip and announces key moments. Returns the caption currently on screen.
@@ -47,11 +91,28 @@ export function useAnnouncements() {
   const lastNag = useRef(0);
   const enabled = profile.announcements;
 
+  // Captions follow whichever announcement is actually playing.
+  useEffect(() => {
+    onChange = (id) => setCaption(id ? ANNOUNCEMENTS[id] : null);
+    return () => {
+      onChange = null;
+      clearQueue();
+    };
+  }, []);
+
+  useEffect(() => {
+    soundOn = enabled;
+    // Muting stops the current message; the rest of the queue continues as captions.
+    if (!enabled && audio && current) {
+      audio.pause();
+      startNext();
+    }
+  }, [enabled]);
+
   const announce = (id: AnnouncementId, onceKey: string = id) => {
     if (said.current.has(onceKey)) return;
     said.current.add(onceKey);
-    if (enabled) play(id);
-    setCaption(ANNOUNCEMENTS[id]);
+    enqueue(id);
   };
 
   const t = state.trip;
@@ -61,9 +122,10 @@ export function useAnnouncements() {
   const nearDestination = phase === "in_trip" && remainingM(state) < ARRIVING_WITHIN_M;
   const trafficLeft = !!t?.leftDoorsLocked;
 
-  // New trip: forget what was said on the last one.
+  // New trip: forget what was said on the last one and drop anything still queued.
   useEffect(() => {
     said.current.clear();
+    clearQueue();
   }, [tripKey]);
 
   useEffect(() => {
@@ -99,18 +161,6 @@ export function useAnnouncements() {
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, unbelted]);
-
-  // Captions fade after the message would have finished.
-  useEffect(() => {
-    if (!caption) return;
-    const id = setTimeout(() => setCaption(null), 7000);
-    return () => clearTimeout(id);
-  }, [caption]);
-
-  // Muting stops the current message.
-  useEffect(() => {
-    if (!enabled) audio?.pause();
-  }, [enabled]);
 
   return caption;
 }
