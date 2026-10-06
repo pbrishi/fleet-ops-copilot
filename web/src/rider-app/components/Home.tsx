@@ -10,6 +10,7 @@ import { quoteFare } from "../pricing";
 import { useRide } from "../RideProvider";
 import { CRUISE_MPS } from "../trip";
 import { nearbyCars, vehicleInfo } from "../vehicles";
+import { SpotifyButton } from "./Cabin";
 import { Sheet, minutes } from "./kit";
 import RideMap from "./RideMapPanel";
 
@@ -52,9 +53,12 @@ export function Home() {
         <div className="rounded-full border border-white/10 bg-slate-950/80 px-3.5 py-1.5 text-sm text-white backdrop-blur">
           Hi, {state.riderName} 👋
         </div>
-        <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-slate-950/80 px-3 py-1.5 text-xs text-slate-200 backdrop-blur">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          {cars.length} cars nearby{pickupMins !== null && <> · {minutes(pickupMins)}</>}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-slate-950/80 px-3 py-1.5 text-xs text-slate-200 backdrop-blur">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            {cars.length} cars nearby{pickupMins !== null && <> · {minutes(pickupMins)}</>}
+          </div>
+          <SpotifyButton />
         </div>
       </div>
 

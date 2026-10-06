@@ -11,16 +11,36 @@ export function distanceM(a: LatLng, b: LatLng) {
   return 2 * EARTH_M * Math.asin(Math.sqrt(h));
 }
 
+export interface Maneuver {
+  atM: number; // distance from the start of the route where the maneuver happens
+  instruction: string; // e.g. "Turn right onto Market Street"
+  direction: "left" | "right" | "straight" | "uturn";
+}
+
 export interface Route {
   points: LatLng[];
   cumulative: number[]; // meters from start to each point
   lengthM: number;
+  maneuvers?: Maneuver[]; // turn-by-turn steps, when the router provides them
 }
 
-export function makeRoute(points: LatLng[]): Route {
+export function makeRoute(points: LatLng[], maneuvers?: Maneuver[]): Route {
   const cumulative = [0];
   for (let i = 1; i < points.length; i++) cumulative.push(cumulative[i - 1] + distanceM(points[i - 1], points[i]));
-  return { points, cumulative, lengthM: cumulative.at(-1) ?? 0 };
+  return { points, cumulative, lengthM: cumulative.at(-1) ?? 0, maneuvers };
+}
+
+// The next maneuver ahead of the car, and how far away it is.
+export function nextManeuver(route: Route, travelledM: number) {
+  const m = route.maneuvers?.find((x) => x.atM > travelledM + 5);
+  return m ? { ...m, inM: m.atM - travelledM } : null;
+}
+
+export const metersToFeet = (m: number) => m * 3.28084;
+export function formatDistance(m: number) {
+  const ft = metersToFeet(m);
+  if (ft < 1000) return `${Math.max(50, Math.round(ft / 50) * 50)} ft`;
+  return `${(m / 1609.34).toFixed(1)} mi`;
 }
 
 // Position along a route after travelling `m` meters, clamped to the route.

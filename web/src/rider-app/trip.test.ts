@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { makeRoute, type LatLng } from "./geo";
 import { SUGGESTED_PLACES } from "./places";
-import { CANCEL_FEE, FREE_CANCEL_SECONDS, blockedReason, initialState, reducer, type Action, type State } from "./trip";
+import { CANCEL_FEE, FREE_CANCEL_SECONDS, RIDER_SEAT, blockedReason, initialState, reducer, type Action, type State } from "./trip";
 
 const pickup = { name: "Union Square", pos: [37.7879, -122.4075] as LatLng };
 const dest = SUGGESTED_PLACES[0];
@@ -20,7 +20,7 @@ const requested = run([{ type: "REQUEST", destination: dest, pickup, quote: { fa
 const enRoute = run([{ type: "MATCHED", vehicle, start: pickupRoute.points[0], pickupRoute, tripRoute }], requested);
 const atPickup = tickUntil(enRoute, "arrived_pickup");
 const boarding = run([{ type: "RIDER_AT_CAR" }, { type: "UNLOCK" }, { type: "BOARD" }], atPickup);
-const inTrip = run([{ type: "FASTEN_BELT" }, { type: "START" }], boarding);
+const inTrip = run([{ type: "BELT", seat: RIDER_SEAT }, { type: "START" }], boarding);
 
 describe("happy path", () => {
   it("goes from request to payment to home", () => {
@@ -70,6 +70,24 @@ describe("safety rule 2: pickup unlock needs the rider at the car", () => {
 describe("safety rule 3: start needs rider inside and belted, and locks doors", () => {
   it("blocks start without a seatbelt", () => {
     expect(blockedReason(boarding, { type: "START" })).toMatch(/seatbelt/);
+  });
+  it("seat sensors detect the rider when they get in", () => {
+    expect(boarding.trip?.seats[RIDER_SEAT]).toEqual({ occupied: true, belted: false });
+  });
+  it("blocks start until every detected passenger is belted", () => {
+    const withGuest = run([{ type: "SEAT_OCCUPIED", seat: "rear_left" }, { type: "BELT", seat: RIDER_SEAT }], boarding);
+    expect(blockedReason(withGuest, { type: "START" })).toMatch(/Everyone/);
+    expect(blockedReason(reducer(withGuest, { type: "BELT", seat: "rear_left" }), { type: "START" })).toBeNull();
+  });
+  it("lets a passenger leave before starting, which clears their seat", () => {
+    const left = run([{ type: "SEAT_OCCUPIED", seat: "rear_left" }, { type: "SEAT_VACATED", seat: "rear_left" }, { type: "BELT", seat: RIDER_SEAT }], boarding);
+    expect(blockedReason(left, { type: "START" })).toBeNull();
+  });
+  it("doesn't allow seat changes once the car is moving", () => {
+    expect(blockedReason(inTrip, { type: "SEAT_OCCUPIED", seat: "front_right" })).not.toBeNull();
+  });
+  it("can't buckle an empty seat", () => {
+    expect(blockedReason(boarding, { type: "BELT", seat: "front_right" })).toMatch(/No one/);
   });
   it("closes and locks the doors on start", () => {
     expect(inTrip.trip?.doors).toBe("locked");
@@ -127,5 +145,24 @@ describe("cancellation", () => {
   });
   it("is not possible mid-trip", () => {
     expect(blockedReason(inTrip, { type: "CANCEL" })).not.toBeNull();
+  });
+});
+
+describe("safety rule 6: exit on the curb side; traffic side stays locked", () => {
+  const arrived = tickUntil(inTrip, "arrived_destination");
+  it("recommends the curb (right) side", () => {
+    expect(arrived.trip?.dropOff?.side).toBe("right");
+  });
+  it("keeps the left doors locked while the cameras see traffic, then unlocks them", () => {
+    expect(arrived.trip?.dropOff?.trafficLeft).toBe(true); // deterministic camera reading for this vehicle + destination
+    expect(arrived.trip?.leftDoorsLocked).toBe(true);
+    let s = arrived;
+    for (let i = 0; i < 10; i++) s = reducer(s, { type: "TICK", dt: 10 });
+    expect(s.trip?.leftDoorsLocked).toBe(false);
+  });
+  it("applies the same rule after an emergency stop", () => {
+    const stopped = tickUntil(reducer(inTrip, { type: "EMERGENCY_STOP" }), "stopped_safe");
+    expect(stopped.trip?.dropOff?.side).toBe("right");
+    expect(stopped.trip?.leftDoorsLocked).toBe(stopped.trip?.dropOff?.trafficLeft);
   });
 });

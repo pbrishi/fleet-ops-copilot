@@ -15,6 +15,10 @@ An iPhone-style rider app at [`/ride`](https://fleet-ops-copilot.vercel.app/ride
 - **Flow:** sign in → home with nearby cars and one-tap priced destinations → matching → live ETA as the car drives a real street route → unlock at pickup → seatbelt check → start (doors close and lock) → in-trip progress → arrive → pay → rate → home.
 - **Safety rules in one pure state machine** ([`web/src/rider-app/trip.ts`](web/src/rider-app/trip.ts)) with 18 unit tests: doors never unlock while moving; pickup unlock needs the rider at the car; start needs a fastened seatbelt; emergency stop decelerates to a safe stop; ending early is prorated; cancellation is free for 2 minutes.
 - **Emergency sheet:** pull over now, call 911 (deliberately not a live call in the public demo), talk to support.
+- **Seat sensors and seatbelts:** a seat map shows who's aboard; Start stays visible but disabled until every occupied seat is buckled.
+- **Turn-by-turn and arrival:** navigation banner from the router's maneuvers ("Turn right onto California Street"), a follow view on the final approach, and an exit guide: curb side recommended, left doors held locked while the (simulated) cameras see traffic approaching.
+- **In-car voice:** pre-recorded Gemini TTS announcements with captions ("Welcome to Auto-Drive", seatbelt reminder, arriving, traffic warning).
+- **Remembers you across rides:** cabin temperature learned from past rides ("Set based on your past rides"), Spotify playlist and position resume when you get in (connection simulated), ratings with optional Comfort / Time to arrive / Ride quality.
 - **Support copilot in the app** (chat + voice) gets live trip context: vehicle, ETA, doors, speed.
 - **Simulated for now:** vehicles, payment (Stripe test mode next), music (simulated player next). Native iOS build via Capacitor is planned.
 

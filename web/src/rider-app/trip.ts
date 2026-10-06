@@ -4,9 +4,11 @@
 // place and are unit-tested (trip.test.ts) instead of being scattered across buttons:
 //   1. Doors unlock only when the car is stopped and parked, never while moving.
 //   2. At pickup, doors also need the rider to be at the car.
-//   3. Starting needs the rider inside and belted; starting closes and locks the doors.
+//   3. Starting needs every occupied seat belted (seat sensors); starting closes and locks the doors.
 //   4. Emergency stop pulls over to the next safe spot (decelerates), never stops in-lane instantly.
 //   5. Ending early charges only for the distance actually travelled.
+//   6. At drop-off, if the cameras see traffic approaching on the left, the left doors stay locked
+//      until it has passed; the rider exits on the curb (right) side.
 
 import { pointAt, metersToMiles, type LatLng, type Route } from "./geo";
 import type { Place } from "./places";
@@ -33,6 +35,19 @@ export interface VehicleInfo {
   roofLight: { name: string; hex: string };
 }
 
+export const SEATS = ["front_right", "rear_left", "rear_middle", "rear_right"] as const;
+export type SeatId = (typeof SEATS)[number];
+export type Seats = Record<SeatId, { occupied: boolean; belted: boolean }>;
+export const RIDER_SEAT: SeatId = "rear_right"; // curb side, the default for the booking rider
+
+const emptySeats = (): Seats => Object.fromEntries(SEATS.map((id) => [id, { occupied: false, belted: false }])) as Seats;
+
+export interface DropOff {
+  side: "right"; // curb side in the US
+  trafficLeft: boolean; // simulated camera detection
+  trafficClearsAt?: number; // simTime when the camera stops seeing traffic
+}
+
 export interface Trip {
   pickup: { name: string; pos: LatLng };
   destination: Place;
@@ -47,7 +62,9 @@ export interface Trip {
   doors: "locked" | "unlocked" | "open";
   riderAtCar: boolean;
   riderInside: boolean;
-  belted: boolean;
+  seats: Seats;
+  dropOff?: DropOff;
+  leftDoorsLocked?: boolean; // held locked while traffic passes on the left
   requestedAt: number;
   tripStartedAt?: number;
   tripEndedAt?: number;
@@ -76,7 +93,9 @@ export type Action =
   | { type: "RIDER_AT_CAR" }
   | { type: "UNLOCK" }
   | { type: "BOARD" }
-  | { type: "FASTEN_BELT" }
+  | { type: "SEAT_OCCUPIED"; seat: SeatId }
+  | { type: "SEAT_VACATED"; seat: SeatId }
+  | { type: "BELT"; seat: SeatId }
   | { type: "START" }
   | { type: "EMERGENCY_STOP" }
   | { type: "RESUME" }
@@ -96,6 +115,24 @@ export const initialState: State = { phase: "signed_out", simTime: 0 };
 
 const isMoving = (t?: Trip) => !!t && (t.speedMps > 0 || !t.parked);
 
+// Everyone the seat sensors detect is buckled (and at least one person is aboard).
+export function allBelted(t?: Trip) {
+  if (!t) return false;
+  const occupied = SEATS.filter((id) => t.seats[id].occupied);
+  return occupied.length > 0 && occupied.every((id) => t.seats[id].belted);
+}
+
+export const unbeltedSeats = (t?: Trip) => (t ? SEATS.filter((id) => t.seats[id].occupied && !t.seats[id].belted) : []);
+
+// Deterministic "camera" reading per trip, so demos and tests are repeatable.
+function cameraSeesTrafficLeft(t: Trip) {
+  const key = `${t.vehicle?.id ?? ""}:${t.destination.id}`;
+  let h = 0;
+  for (const c of key) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return h % 3 !== 0; // about two thirds of drop-offs have passing traffic
+}
+const TRAFFIC_PASSES_AFTER = 50; // sim seconds (~5 real seconds)
+
 // Why an action isn't allowed right now, or null if it is.
 export function blockedReason(state: State, action: Action): string | null {
   const t = state.trip;
@@ -112,18 +149,23 @@ export function blockedReason(state: State, action: Action): string | null {
     case "BOARD":
       if (state.phase !== "arrived_pickup") return "There's no car waiting for you yet.";
       return t?.doors === "unlocked" ? null : "Unlock the doors first.";
-    case "FASTEN_BELT":
-      return state.phase === "boarding" && t?.riderInside ? null : "Get in the car first.";
+    case "SEAT_OCCUPIED":
+    case "SEAT_VACATED":
+      // Riders can only take or leave seats while boarding, with the car parked.
+      return state.phase === "boarding" && !isMoving(t) ? null : "Seats can change only while the car is parked for boarding.";
+    case "BELT":
+      if (!t?.riderInside) return "Get in the car first.";
+      return t.seats[action.seat].occupied ? null : "No one is sitting there.";
     case "START":
       if (state.phase !== "boarding" || !t?.riderInside) return "Get in the car first.";
-      if (!t.belted) return "Fasten your seatbelt to start the ride.";
+      if (!allBelted(t)) return "Everyone needs a seatbelt on before the ride can start.";
       return isMoving(t) ? "The car is already moving." : null;
     case "EMERGENCY_STOP":
       return state.phase === "in_trip" ? null : "Emergency stop is available while the car is driving.";
     case "RESUME":
       if (state.phase !== "stopped_safe") return "The car isn't stopped.";
       if (t?.doors === "open") return "Close the doors before continuing.";
-      return t?.belted ? null : "Fasten your seatbelt to continue.";
+      return allBelted(t) ? null : "Everyone needs a seatbelt on to continue.";
     case "END_TRIP":
       if (!["arrived_destination", "stopped_safe"].includes(state.phase)) return "You can end the trip once the car has stopped.";
       return isMoving(t) ? "Wait for the car to stop." : null;
@@ -177,7 +219,7 @@ export function reducer(state: State, action: Action): State {
           doors: "locked",
           riderAtCar: false,
           riderInside: false,
-          belted: false,
+          seats: emptySeats(),
           requestedAt: state.simTime,
           tripDistanceM: 0,
         },
@@ -200,9 +242,14 @@ export function reducer(state: State, action: Action): State {
     case "UNLOCK":
       return { ...state, notice: undefined, trip: { ...t!, doors: "unlocked" } };
     case "BOARD":
-      return { ...state, phase: "boarding", notice: undefined, trip: { ...t!, doors: "open", riderInside: true } };
-    case "FASTEN_BELT":
-      return { ...state, notice: undefined, trip: { ...t!, belted: true } };
+      // Seat sensors detect the booking rider in their seat, not yet buckled.
+      return { ...state, phase: "boarding", notice: undefined, trip: { ...t!, doors: "open", riderInside: true, seats: { ...t!.seats, [RIDER_SEAT]: { occupied: true, belted: false } } } };
+    case "SEAT_OCCUPIED":
+      return { ...state, notice: undefined, trip: { ...t!, seats: { ...t!.seats, [action.seat]: { occupied: true, belted: false } } } };
+    case "SEAT_VACATED":
+      return { ...state, notice: undefined, trip: { ...t!, seats: { ...t!.seats, [action.seat]: { occupied: false, belted: false } } } };
+    case "BELT":
+      return { ...state, notice: undefined, trip: { ...t!, seats: { ...t!.seats, [action.seat]: { occupied: true, belted: true } } } };
     case "START":
       // Starting closes and locks the doors, then the car pulls away.
       return {
@@ -246,8 +293,21 @@ function tick(state: State, dt: number): State {
     const next = advance(t, t.tripRoute, t.speedMps * dt);
     const withDistance = { ...next, tripDistanceM: next.travelledM };
     if (next.travelledM >= t.tripRoute.lengthM) {
-      // Parked at the destination: doors unlock for the rider to get out.
-      return { ...state, simTime, phase: "arrived_destination", trip: { ...withDistance, speedMps: 0, parked: true, doors: "unlocked" } };
+      // Parked at the curb: doors unlock, except the traffic side while the cameras see traffic.
+      const trafficLeft = cameraSeesTrafficLeft(t);
+      return {
+        ...state,
+        simTime,
+        phase: "arrived_destination",
+        trip: {
+          ...withDistance,
+          speedMps: 0,
+          parked: true,
+          doors: "unlocked",
+          dropOff: { side: "right", trafficLeft, trafficClearsAt: trafficLeft ? simTime + TRAFFIC_PASSES_AFTER : undefined },
+          leftDoorsLocked: trafficLeft,
+        },
+      };
     }
     return { ...state, simTime, trip: withDistance };
   }
@@ -256,8 +316,22 @@ function tick(state: State, dt: number): State {
     const speed = Math.max(0, t.speedMps - PULL_OVER_DECEL * dt);
     const next = advance(t, t.tripRoute, ((t.speedMps + speed) / 2) * dt);
     const withDistance = { ...next, tripDistanceM: next.travelledM, speedMps: speed };
-    if (speed === 0) return { ...state, simTime, phase: "stopped_safe", trip: { ...withDistance, parked: true } };
+    if (speed === 0) {
+      // Pulled over to the curb on the right: same exit-side rules as a normal drop-off.
+      const trafficLeft = cameraSeesTrafficLeft(t);
+      return {
+        ...state,
+        simTime,
+        phase: "stopped_safe",
+        trip: { ...withDistance, parked: true, dropOff: { side: "right", trafficLeft, trafficClearsAt: trafficLeft ? simTime + TRAFFIC_PASSES_AFTER : undefined }, leftDoorsLocked: trafficLeft },
+      };
+    }
     return { ...state, simTime, trip: withDistance };
+  }
+
+  // Once the cameras stop seeing traffic on the left, those doors unlock too.
+  if (t.leftDoorsLocked && t.dropOff?.trafficClearsAt !== undefined && simTime >= t.dropOff.trafficClearsAt) {
+    return { ...state, simTime, trip: { ...t, leftDoorsLocked: false, dropOff: { ...t.dropOff, trafficLeft: false } } };
   }
 
   return { ...state, simTime };

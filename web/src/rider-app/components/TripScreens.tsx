@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Car, Check, Lightbulb, Lock, LockOpen, MessageCircle, Music2, ShieldAlert, X } from "lucide-react";
+import { Bell, Car, Lightbulb, Lock, LockOpen, MessageCircle, ShieldAlert, X } from "lucide-react";
 import { AnimatedCircularProgressBar } from "@/components/ui/animated-circular-progress-bar";
 import { Confetti } from "@/components/ui/confetti";
 import { PulsatingButton } from "@/components/ui/pulsating-button";
@@ -9,30 +9,45 @@ import { Ripple } from "@/components/ui/ripple";
 import { usd } from "../pricing";
 import { useRide } from "../RideProvider";
 import { CRUISE_MPS, FREE_CANCEL_SECONDS, blockedReason, remainingM, type State } from "../trip";
+import { AnnouncementsToggle, ClimateCard, MusicCard } from "./Cabin";
+import { ExitGuide, NavBanner, SeatMap, seatsSummary } from "./Drive";
 import { ActionButton, PrimaryButton, Sheet, VehicleCard, minutes } from "./kit";
 import RideMap from "./RideMapPanel";
 
 const etaMin = (state: State) => remainingM(state) / CRUISE_MPS / 60;
 
 // Map for every in-trip phase: the active leg plus the car's live position.
+// On the final approach it switches to a navigation-style view that follows the car.
+export const ARRIVING_WITHIN_M = 350;
+
 export function TripMap({ bottom = 330 }: { bottom?: number }) {
   const { state } = useRide();
   const t = state.trip;
   if (!t) return null;
   const toPickup = ["matching", "en_route"].includes(state.phase);
   const atPickup = ["arrived_pickup", "boarding"].includes(state.phase);
+  const driving = ["in_trip", "pulling_over"].includes(state.phase);
+  const arrivingNow = driving && remainingM(state) < ARRIVING_WITHIN_M;
   // Once the car has arrived, zoom in on the rider and the parked car instead of the old route.
   const route = atPickup ? undefined : (toPickup ? t.pickupRoute : t.tripRoute)?.points;
   const riderPos: [number, number] = atPickup && !t.riderAtCar ? [t.pickup.pos[0] - 0.00035, t.pickup.pos[1] - 0.00012] : t.pickup.pos;
-  const fit = atPickup ? [riderPos, t.carPos ?? t.pickup.pos] : (route ?? [t.pickup.pos, t.destination.pos]);
+  const fit: [number, number][] = arrivingNow && t.carPos
+    ? [t.carPos]
+    : driving && t.carPos
+      ? [t.carPos, t.destination.pos]
+      : atPickup
+        ? [riderPos, t.carPos ?? t.pickup.pos]
+        : route ?? [t.pickup.pos, t.destination.pos];
   return (
     <div className="absolute inset-0">
       <RideMap
         rider={toPickup || (atPickup && !t.riderInside) ? riderPos : undefined}
         route={route}
+        dest={toPickup || atPickup ? undefined : t.destination.pos}
         cars={t.carPos && t.vehicle ? [{ id: t.vehicle.id, pos: t.carPos, color: t.vehicle.roofLight.hex, highlight: true }] : []}
         fit={fit}
         bottomPadding={bottom}
+        followZoom={17}
       />
     </div>
   );
@@ -157,41 +172,30 @@ export function ArrivedPickup({ onChat }: { onChat: () => void }) {
 export function Boarding() {
   const { state, dispatch } = useRide();
   const t = state.trip!;
-  const items = [
-    { label: "You're inside the car", done: t.riderInside },
-    { label: "Seatbelt fastened", done: t.belted, action: () => dispatch({ type: "FASTEN_BELT" }) },
-    { label: "Doors close and lock when you start", done: false, info: true },
-  ];
+  const { occupied, waiting } = seatsSummary(t);
+  const ready = !blockedReason(state, { type: "START" });
   return (
     <div className="relative h-full">
-      <TripMap bottom={420} />
-      <Sheet>
-        <div className="text-xs uppercase tracking-wider text-sky-300">Welcome aboard {t.vehicle?.id}</div>
-        <div className="text-2xl font-semibold text-white">Ready when you are</div>
-        <p className="mt-1 text-xs text-slate-400">To {t.destination.name} · about {minutes(t.quote.minutes)}</p>
-        <ul className="mt-4 space-y-2">
-          {items.map((it) => (
-            <li key={it.label}>
-              <button
-                onClick={it.action}
-                disabled={!it.action || it.done}
-                className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left text-sm transition ${
-                  it.done ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-100" : it.info ? "border-white/5 bg-transparent text-slate-400" : "border-sky-400/40 bg-sky-500/10 text-white"
-                }`}
-              >
-                <span className={`flex h-6 w-6 items-center justify-center rounded-full ${it.done ? "bg-emerald-500 text-slate-950" : it.info ? "bg-white/10 text-slate-400" : "border border-sky-300 text-sky-200"}`}>
-                  {it.done ? <Check className="h-3.5 w-3.5" /> : it.info ? <Lock className="h-3 w-3" /> : null}
-                </span>
-                <span className="flex-1">{it.label}</span>
-                {it.action && !it.done && <span className="text-xs text-sky-300">Tap to confirm</span>}
-              </button>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-4">
-          <RainbowButton onClick={() => dispatch({ type: "START" })} disabled={!t.belted} className="h-12 w-full rounded-2xl text-[15px] font-semibold disabled:opacity-40">
-            Start ride
+      <TripMap bottom={560} />
+      <Sheet className="max-h-[78%] overflow-y-auto">
+        <div className="text-xs uppercase tracking-wider text-sky-300">Welcome to Auto-Drive · {t.vehicle?.id}</div>
+        <div className="text-xl font-semibold text-white">{ready ? "Everyone's buckled. Ready when you are" : "Please put on your seatbelts"}</div>
+        <p className="mt-0.5 text-xs text-slate-400">
+          To {t.destination.name} · about {minutes(t.quote.minutes)} · {occupied} {occupied === 1 ? "rider" : "riders"} detected
+        </p>
+        <div className="mt-3">
+          <SeatMap />
+        </div>
+        <div className="mt-2 space-y-2">
+          <ClimateCard />
+          <MusicCard vehicleId={t.vehicle?.id} inCar />
+          <AnnouncementsToggle />
+        </div>
+        <div className="mt-3">
+          <RainbowButton onClick={() => dispatch({ type: "START" })} disabled={!ready} aria-label="Start ride" className="h-12 w-full rounded-2xl text-[15px] font-semibold disabled:opacity-40">
+            {ready ? "Start ride" : `Waiting for ${waiting} seatbelt${waiting === 1 ? "" : "s"}`}
           </RainbowButton>
+          <p className="mt-1.5 text-center text-[11px] text-slate-500">Doors close and lock automatically when the ride starts.</p>
         </div>
       </Sheet>
     </div>
@@ -204,38 +208,37 @@ export function InTrip({ onChat, onEmergency }: { onChat: () => void; onEmergenc
   const total = t.tripRoute?.lengthM ?? 1;
   const progress = Math.min(100, (t.travelledM / total) * 100);
   const pulling = state.phase === "pulling_over";
+  const arriving = !pulling && remainingM(state) < ARRIVING_WITHIN_M;
   return (
     <div className="relative h-full">
-      <TripMap bottom={380} />
-      <Sheet>
+      <TripMap bottom={430} />
+      {!pulling && <NavBanner arriving={arriving} />}
+      <Sheet className="max-h-[62%] overflow-y-auto">
         {pulling ? (
           <div className="rounded-2xl border border-amber-400/40 bg-amber-500/10 p-3 text-amber-100">
             <div className="text-sm font-semibold">Pulling over safely…</div>
             <div className="text-xs text-amber-200/80">Slowing to the next safe spot · {Math.round(t.speedMps * 2.237)} mph</div>
           </div>
         ) : (
-          <>
-            <div className="text-xs uppercase tracking-wider text-sky-300">On the way to</div>
-            <div className="text-2xl font-semibold text-white">{t.destination.name}</div>
-            <div className="mt-1 text-xs text-slate-400">
-              Arriving in {minutes(etaMin(state))} · {Math.round(t.speedMps * 2.237)} mph · doors locked
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-xs uppercase tracking-wider text-sky-300">{arriving ? "Arriving" : "On the way to"}</div>
+              <div className="truncate text-xl font-semibold text-white">{t.destination.name}</div>
             </div>
-          </>
+            <div className="shrink-0 text-right">
+              <div className="text-xl font-semibold tabular-nums text-white">{minutes(etaMin(state))}</div>
+              <div className="text-[11px] text-slate-400">{Math.round(t.speedMps * 2.237)} mph · doors locked</div>
+            </div>
+          </div>
         )}
         <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
           <div className="h-full rounded-full bg-gradient-to-r from-sky-400 to-indigo-400 transition-[width] duration-1000" style={{ width: `${progress}%` }} />
         </div>
-
-        <div className="mt-4 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600">
-            <Music2 className="h-5 w-5 text-slate-950" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-sm text-white">Music</div>
-            <div className="truncate text-xs text-slate-400">Connected to {t.vehicle?.id} audio · player coming in the next phase</div>
-          </div>
+        <div className="mt-3 space-y-2">
+          <MusicCard vehicleId={t.vehicle?.id} inCar />
+          <ClimateCard compact />
+          <AnnouncementsToggle />
         </div>
-
         <div className="mt-3 flex gap-2">
           <ActionButton label="Chat with support" onClick={onChat}>
             <MessageCircle className="h-4 w-4" /> Support
@@ -254,17 +257,20 @@ export function StoppedSafe({ onChat }: { onChat: () => void }) {
   const t = state.trip!;
   return (
     <div className="relative h-full">
-      <TripMap bottom={380} />
+      <TripMap bottom={470} />
       <Sheet>
         <div className="text-xs uppercase tracking-wider text-emerald-300">Car stopped safely</div>
-        <div className="text-xl font-semibold text-white">Parked out of traffic</div>
-        <p className="mt-1 text-xs text-slate-400">Support has been notified. You can continue, or end the trip here and pay only for the distance travelled.</p>
-        <div className="mt-4 space-y-2">
+        <div className="text-xl font-semibold text-white">Parked at the curb</div>
+        <p className="mt-1 text-xs text-slate-400">Support has been notified. Continue, or end the trip here and pay only for the distance travelled.</p>
+        <div className="mt-3">
+          <ExitGuide />
+        </div>
+        <div className="mt-3 space-y-2">
           <PrimaryButton onClick={() => dispatch({ type: "RESUME" })}>Continue to {t.destination.name}</PrimaryButton>
-          <button onClick={() => dispatch({ type: "END_TRIP" })} className="w-full rounded-2xl border border-white/15 py-3.5 text-[15px] font-medium text-white">
+          <button onClick={() => dispatch({ type: "END_TRIP" })} className="w-full rounded-2xl border border-white/15 py-3 text-[15px] font-medium text-white">
             End trip here
           </button>
-          <button onClick={onChat} className="w-full py-2 text-sm text-sky-300">
+          <button onClick={onChat} className="w-full py-1.5 text-sm text-sky-300">
             Talk to support
           </button>
         </div>
@@ -278,12 +284,15 @@ export function ArrivedDestination() {
   const t = state.trip!;
   return (
     <div className="relative h-full">
-      <TripMap bottom={330} />
-      <Confetti className="pointer-events-none absolute inset-0 z-[550] size-full" options={{ particleCount: 90, spread: 70, origin: { y: 0.55 } }} />
+      <TripMap bottom={430} />
+      <Confetti className="pointer-events-none absolute inset-0 z-[550] size-full" options={{ particleCount: 90, spread: 70, origin: { y: 0.45 } }} />
       <Sheet>
         <div className="text-xs uppercase tracking-wider text-emerald-300">You&apos;ve arrived</div>
         <div className="text-2xl font-semibold text-white">{t.destination.name}</div>
-        <p className="mt-1 text-xs text-slate-400">The car has parked and your doors are unlocked. Check for your belongings, then watch for bikes as you get out.</p>
+        <p className="mt-1 text-xs text-slate-400">Parked at the curb. Check for your belongings before you get out.</p>
+        <div className="mt-3">
+          <ExitGuide />
+        </div>
         <div className="mt-4">
           <PrimaryButton onClick={() => dispatch({ type: "END_TRIP" })}>End trip · {usd(t.quote.fare)}</PrimaryButton>
         </div>
@@ -291,3 +300,4 @@ export function ArrivedDestination() {
     </div>
   );
 }
+
