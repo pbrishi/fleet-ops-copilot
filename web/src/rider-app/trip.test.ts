@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { makeRoute, type LatLng } from "./geo";
 import { SUGGESTED_PLACES } from "./places";
-import { CANCEL_FEE, FREE_CANCEL_SECONDS, RIDER_SEAT, blockedReason, initialState, reducer, type Action, type State } from "./trip";
+import { CANCEL_FEE, FREE_CANCEL_SECONDS, RIDER_SEAT, blockedReason, initialState, migrateState, reducer, type Action, type State } from "./trip";
 
 const pickup = { name: "Union Square", pos: [37.7879, -122.4075] as LatLng };
 const dest = SUGGESTED_PLACES[0];
@@ -164,5 +164,35 @@ describe("safety rule 6: exit on the curb side; traffic side stays locked", () =
     const stopped = tickUntil(reducer(inTrip, { type: "EMERGENCY_STOP" }), "stopped_safe");
     expect(stopped.trip?.dropOff?.side).toBe("right");
     expect(stopped.trip?.leftDoorsLocked).toBe(stopped.trip?.dropOff?.trafficLeft);
+  });
+});
+
+describe("loading a ride saved by an older app version", () => {
+  const v1Trip = (() => {
+    const { seats: _s, ...rest } = boarding.trip!;
+    void _s;
+    return { ...rest, belted: true };
+  })();
+  it("adds the seat map, keeping the rider's old seatbelt state", () => {
+    const s = migrateState({ ...boarding, trip: v1Trip });
+    expect(s.phase).toBe("boarding");
+    expect(s.trip?.seats[RIDER_SEAT]).toEqual({ occupied: true, belted: true });
+    expect(blockedReason(s, { type: "START" })).toBeNull();
+  });
+  it("can keep running a migrated in-progress trip", () => {
+    const { seats: _s, ...movingV1 } = inTrip.trip!;
+    void _s;
+    const s = migrateState({ ...inTrip, trip: { ...movingV1, belted: true } });
+    expect(reducer(s, { type: "TICK", dt: 10 }).trip!.travelledM).toBeGreaterThan(inTrip.trip!.travelledM);
+  });
+  it("sends the rider home if the saved trip is unusable", () => {
+    expect(migrateState({ phase: "in_trip", riderName: "R", simTime: 5, trip: { foo: 1 } }).phase).toBe("home");
+  });
+  it("ignores garbage", () => {
+    expect(migrateState("nope")).toEqual(initialState);
+    expect(migrateState({ phase: "warp_speed" })).toEqual(initialState);
+  });
+  it("restarts a request that was mid-matching", () => {
+    expect(migrateState({ ...requested }).phase).toBe("home");
   });
 });

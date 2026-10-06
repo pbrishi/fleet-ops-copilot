@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useReducer, useRef } from "react"
 import { useFleet } from "@/components/FleetProvider";
 import type { LatLng } from "./geo";
 import { fetchRoute } from "./routing";
-import { initialState, reducer, type Action, type State } from "./trip";
+import { initialState, migrateState, reducer, type Action, type State } from "./trip";
 import { nearbyCars, vehicleInfo } from "./vehicles";
 
 // One real second advances the simulation by this many seconds, so a demo ride takes about a minute.
@@ -17,10 +17,7 @@ const Ctx = createContext<{ state: State; dispatch: (a: Action) => void; ready: 
 function load(): State {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return initialState;
-    const saved = JSON.parse(raw) as State;
-    // A trip that was mid-matching can't resume its async lookup; start that request again from home.
-    return saved.phase === "matching" ? { ...saved, phase: "home", trip: undefined } : { ...saved, notice: undefined };
+    return raw ? migrateState(JSON.parse(raw)) : initialState;
   } catch {
     return initialState;
   }

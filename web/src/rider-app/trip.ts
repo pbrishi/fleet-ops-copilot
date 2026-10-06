@@ -113,6 +113,33 @@ export const CANCEL_FEE = 5;
 
 export const initialState: State = { phase: "signed_out", simTime: 0 };
 
+const PHASES: Phase[] = ["signed_out", "home", "matching", "en_route", "arrived_pickup", "boarding", "in_trip", "pulling_over", "stopped_safe", "arrived_destination", "payment", "complete"];
+
+// Bring a state saved by an older app version up to date. Anything that can't be repaired
+// drops the trip (rider goes Home) rather than crashing the app on load.
+export function migrateState(raw: unknown): State {
+  if (!raw || typeof raw !== "object") return initialState;
+  const saved = raw as Partial<State> & { trip?: Partial<Trip> & { belted?: boolean } };
+  if (!saved.phase || !PHASES.includes(saved.phase)) return initialState;
+  const base: State = { phase: saved.phase, riderName: saved.riderName, simTime: Number(saved.simTime) || 0 };
+  if (base.phase === "signed_out") return base;
+  if (base.phase === "home" || base.phase === "matching") return { ...base, phase: "home" };
+
+  const t = saved.trip;
+  const valid = t && t.pickup?.pos && t.destination?.pos && t.quote && typeof t.travelledM === "number";
+  if (!valid) return { ...base, phase: "home" };
+
+  // v1 had a single `belted` flag and no seat map.
+  let seats = t.seats;
+  if (!seats || !SEATS.every((id) => seats![id])) {
+    seats = emptySeats();
+    if (t.riderInside) seats[RIDER_SEAT] = { occupied: true, belted: !!t.belted };
+  }
+  const { belted: _legacy, ...rest } = t;
+  void _legacy;
+  return { ...base, trip: { ...(rest as Trip), seats } };
+}
+
 const isMoving = (t?: Trip) => !!t && (t.speedMps > 0 || !t.parked);
 
 // Everyone the seat sensors detect is buckled (and at least one person is aboard).
